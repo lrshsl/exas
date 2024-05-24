@@ -1,0 +1,7 @@
+
+print 4
+
+print 8 + 1
+
+print 8 - 1
+print 9-5 + 18 /     6
