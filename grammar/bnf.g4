@@ -1,47 +1,101 @@
 grammar bnf;		
 
 ast
-    : stmt* EOF
+    : line* EOF
+    ;
+
+line
+    : stmt NL
+    | NL
     ;
 
 stmt
-    : expr NL
-    | 'print' expr NL
-    | ident '=' expr NL
+    : expr
+    | 'print' expr
+    | Ident '<-' expr
+    | expr '->' Ident
+    ;
+
+primaryExpression
+    : IntLiteral
+    | StringLiteral
+    | Ident
+    | '(' expr ')'
     ;
 
 expr
-    :	expr ('*'|'/') expr
-    |	expr ('+'|'-') expr
-    |	INT
-    |	'(' expr ')'
+    : primaryExpression
+    | expr ('*'|'/') expr
+    | expr ('+'|'-') expr
+    | Ident '<-' expr
+    | expr '->' Ident
+    | expr ('<'|'>'|'=='|'!='|'<='|'>=') expr
+    | expr '&&' expr
+    | expr '||' expr
     ;
 
-ident
-    : (ALPHA | '_') (ALPHANUM | '_')*
+
+//---|> Lexer rules <|---//
+
+CommentOrDoc
+    : (LineComment | BlockComment | BlockDoc) -> channel(HIDDEN)
+    ;
+
+LineComment
+    : ('//' (~[/!] | '//') ~[\r\n]* | '//') -> channel (HIDDEN)
+    ;
+
+BlockComment
+    : (
+        '/*' (~[*!] | '**' | BlockComment | BlockDoc) (BlockComment | BlockDoc | ~[*])*? '*/'
+        | '/**/'
+        | '/***/'
+    ) -> channel(HIDDEN)
+    ;
+
+BlockDoc
+    : '///' (~[/] ~[\n\r]*)? -> channel(HIDDEN)
     ;
 
 
-// Lexer rules
+// String Literals
 
-ALPHANUM
-    : ALPHA
-    | INT
+StringLiteral
+    : RawStringLiteral
+    | EscStringLiteral
     ;
 
-ALPHA
+RawStringLiteral
+    : '\'' .*? '\''
+    ;
+
+EscStringLiteral
+    : '"' .*? '"'
+    ;
+
+
+// Numeric Literals
+
+IntLiteral
+    : DIGIT+
+    ;
+
+Ident
+    : ALPHA (ALPHA|DIGIT)*
+    ;
+
+
+// Dead simple matches IN_CAPS
+
+fragment ALPHA
     : [A-Za-z]
     ;
 
-INT
-    : [0-9]+
+fragment DIGIT
+    : [0-9]
     ;
 
-NL
-    : [\r\n]+
-    ;
+NL  : [\r\n]+ ;
 
-WS
-    : [ \t]+ -> skip
-    ;
+WS  : [ \t]+ -> skip ;
 

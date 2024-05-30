@@ -1,0 +1,24 @@
+/// Obsolete
+
+const NEWLINE = 12
+const SPACE = 32
+
+reg a
+a <- 1
+
+b: reg <- 2
+c: reg
+3 -> c
+
+print a
+print b
+
+a <- a + b
+print a
+
+add_one <- fn a { a + 1 }
+
+arr: mem
+(a, b, c) -> add_one -> arr
+
+/// vim: ft=exas et! sw=2 sts=2 ts=2

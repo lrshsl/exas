@@ -1,0 +1,19 @@
+
+// This is a one line comment
+
+/*
+This is a multi line comment
+that spans multiple lines
+*/
+
+// They can also be delimited on the same line
+let x = /* 1 */ 2
+
+
+/*
+    /* I hope nested comments work as well
+    */
+
+    End of nested
+*/
+print "success" // Comments can also be here

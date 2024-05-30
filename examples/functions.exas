@@ -1,0 +1,18 @@
+
+// Idea:
+// - Program close to the hardware
+// - No functions, blocks
+
+
+// Hardware agnostic
+// - registers
+// - 
+
+f1 = () {
+    print "f1 ran",
+},
+
+f2 = (x, y) {
+    print { "f2 ran with x = ", x, " and y = ", y }
+},
+

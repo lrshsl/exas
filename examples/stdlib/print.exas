@@ -1,0 +1,16 @@
+out = const {
+    let os <- OS.getTargetOs,
+    is os.type == OS.Unix? reg4
+    or is os == OS.Windows? reg4
+};
+
+op = const match target {
+    ..
+};
+
+pub print = fn arg {
+    op <- syscalls.write,
+    out <- stdout,
+    len <- arg.len,
+};
+

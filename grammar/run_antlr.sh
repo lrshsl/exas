@@ -11,8 +11,10 @@ if [ ! -f grammar/bnf.g4 ]; then
 fi
 
 for file in $@; do
-    echo "<-< Processing $file\n >->"
-    antlr4-parse grammar/bnf.g4 ast -gui -tree $@
-    echo
+    echo -e "<-< File $file, writing contents: >->\n<<<"
+    cat $file
+    echo -e ">>>>\n\n<-< End file contents >->"
+    antlr4-parse grammar/bnf.g4 ast -gui $file
+    echo -e "<-< End $file >->\n"
 done
 

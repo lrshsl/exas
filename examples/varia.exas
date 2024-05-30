@@ -1,0 +1,17 @@
+consts = comptime {
+    'syscalls' sys = {
+        write: 1
+    },
+    'registers' {
+        eax: r0,
+        ebx: r1
+    },
+},
+
+// <- -> only for registers?
+main = {
+    eax <- sys.write,
+    ebx <- 2,
+    2 -> eax,
+    do syscall,
+},
