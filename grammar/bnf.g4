@@ -1,60 +1,78 @@
 grammar bnf;		
 
 ast
-    : line* EOF
+    : listcontent EOF
     ;
 
-line
-    : stmt NL
-    | NL
+list
+    : '{' listcontent '}'  // Immutable
+    | '[' listcontent ']'  // Mutable
     ;
 
-stmt
-    : expr
-    | 'print' expr
-    | Ident '<-' expr
-    | expr '->' Ident
-    ;
-
-primaryExpression
-    : IntLiteral
-    | StringLiteral
-    | Ident
-    | '(' expr ')'
+listcontent
+    : expr (',' expr?)*
     ;
 
 expr
     : primaryExpression
     | expr ('*'|'/') expr
     | expr ('+'|'-') expr
-    | Ident '<-' expr
-    | expr '->' Ident
     | expr ('<'|'>'|'=='|'!='|'<='|'>=') expr
     | expr '&&' expr
     | expr '||' expr
     ;
 
+primaryExpression
+    : fn
+	 | fnCall
+    | IntLiteral
+    | StringLiteral
+    | Id
+    | '(' expr ')'
+    ;
+
+fn
+    : '(' Id* ')' list
+    ;
+
+fnCall
+	: Id ( anyToken | list | '(' expr ')' | CommentOrDoc )*
+	;
 
 //---|> Lexer rules <|---//
 
+anyToken
+	: Id
+	| IntLiteral
+	| StringLiteral
+	| '!'  | '#' | '$' | '%' | '&' | '\''
+	| '*'  | '+' | '-' | '.' | '/' | ':'
+	| ';'  | '<' | '=' | '>' | '?' | '@'
+	| '\\' | '^' | '_' | '`' | '|' | '~'
+	;
+
 CommentOrDoc
-    : (LineComment | BlockComment | BlockDoc) -> channel(HIDDEN)
+    : (LineComment | BlockComment | InlineDoc | BlockDoc) -> channel(HIDDEN)
     ;
 
 LineComment
-    : ('//' (~[/!] | '//') ~[\r\n]* | '//') -> channel (HIDDEN)
+    : '//' ~[\n\r]*
     ;
 
 BlockComment
-    : (
-        '/*' (~[*!] | '**' | BlockComment | BlockDoc) (BlockComment | BlockDoc | ~[*])*? '*/'
-        | '/**/'
-        | '/***/'
-    ) -> channel(HIDDEN)
+    : '/..' (CommentOrDoc | ~[.])*? '../'
+    ;
+
+InlineDoc
+    : '\'' ~[\n\r]* '\'' -> channel(HIDDEN)
     ;
 
 BlockDoc
-    : '///' (~[/] ~[\n\r]*)? -> channel(HIDDEN)
+    : '///' ~[\n\r]* -> channel(HIDDEN)
+    ;
+
+Reg
+    : 'r' [0-9]+
     ;
 
 
@@ -62,15 +80,15 @@ BlockDoc
 
 StringLiteral
     : RawStringLiteral
-    | EscStringLiteral
+    | FormatString
     ;
 
 RawStringLiteral
-    : '\'' .*? '\''
+    : '"' .*? '"'
     ;
 
-EscStringLiteral
-    : '"' .*? '"'
+FormatString
+    : 'f' '"' .*? '"'
     ;
 
 
@@ -80,12 +98,12 @@ IntLiteral
     : DIGIT+
     ;
 
-Ident
-    : ALPHA (ALPHA|DIGIT)*
+Id
+    : ALPHA (ALPHA | DIGIT)*
     ;
 
 
-// Dead simple matches IN_CAPS
+// Fragments
 
 fragment ALPHA
     : [A-Za-z]
@@ -95,7 +113,5 @@ fragment DIGIT
     : [0-9]
     ;
 
-NL  : [\r\n]+ ;
-
-WS  : [ \t]+ -> skip ;
+WS  : [ \t\r\n]+ -> skip ;
 

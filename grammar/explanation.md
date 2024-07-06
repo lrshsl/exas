@@ -74,7 +74,7 @@ r1 <- { if x < 0 { x + 1 } else { 4, } }
 
 In the case of `else` here, the unit value will end up in `r1`, not `4`.
 
-### Functions
+### Function definitions
 Syntax: `(<args>){<inst>}`
 ```exas
 add = (x, y) {
@@ -85,8 +85,22 @@ add = (x, y) {
 ### Function calls
 Syntax: `<name> <args>`
 
-To call a function, the parentheses and commas are **not** required. In fact, `f a b` is not the same as `f (a, b)`
+Every token after the name is considered an argument and passed on to the function. An exception are parentheses, who are evaluated first and then passed on as a single argument. For instance, in `f 2 + 4`, 3 arguments are passed, `2`, `+`, and `4`. If the expression should be evaluated first, parentheses can be used `f (2 + 4)`.
+Blocks can be used as arguments too.
 
+> To call a function, the parentheses and commas are **not** required. In fact, `f a b` is not the same as `f (a, b)`,
+
+## Types
+idk yet.
+
+I'd like:
+- types implemented in the stdlib rather than by the compiler
+    - comptime functions doing type checks?
+- a way to express linear types / higher RAII
+- nice errors as values
+- options
+- or well notated nullables?
+    - -> more performant
 
 ## Extras
 
@@ -108,7 +122,7 @@ Or if-else:
 if = (expr, if_block, 'else', else_block) {
     if expr { if_block },
     if !expr { else_block }
-}
+},
 ```
 For performance reasons, `if` it isn't actually defined like that.
 
