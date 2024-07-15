@@ -1,7 +1,9 @@
 
+> Outdated to some parts
+
 # Theorie
 
-There's registers built into the language. They prefixed with `r` and enumerated in the format `r<n>` where `n` is a positive integer (`r1`, `r20`, ..). Move instructions (`mov eax,1`) has dedicated syntax using thin arrows (`eax <- 1` or `1 -> eax`). A numerical value can be used as a reference using `*` as in other low-level higher level languages such as C or Rust.
+There's registers built into the language. They prefixed with `r` and enumerated in the format `r<n>` where `n` is a positive integer (`r1`, `r20`, ..). Move instructions (`mov eax,1`) has dedicated syntax using thin arrows (`eax <- 1` or `1 -> eax`). A numerical value can be used as a pointer using `*` as in other low-level higher level languages such as C or Rust.
 
 The primary structure is a list `{}`. Not 'list' as in linked list, but rather as what other programming languages would consider to be a vector. Lists are essential in exas:
 The whole program is just a list of top-level instructions. A block is also just a list of instructions, and a function is just a block with parameters.
@@ -34,7 +36,7 @@ msg 'message to print' = &{
 },
 msg_len = $ - msg, /.. $ is the current address ../
 
-goto *say_hello,
+goto say_hello,
 ```
 
 ## Comments and docs
