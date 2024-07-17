@@ -1,0 +1,13 @@
+     1                                  ; Simple function call
+     2                                  
+     3                                  
+     4                                  section .text
+     5                                  global simple_function
+     6                                  
+     7                                  add:
+     8 00000000 55                      	push rbp
+     9 00000001 4889E5                  	mov rbp, rsp
+    10 00000004 4889F8                  	mov rax, rdi
+    11 00000007 4801F0                  	add rax, rsi
+    12 0000000A C9                      	leave
+    13 0000000B C3                      	ret

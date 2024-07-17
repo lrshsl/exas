@@ -1,0 +1,7 @@
+     1                                  section .text
+     2                                  global _start
+     3                                  
+     4                                  _start:
+     5 00000000 B83C000000              	mov rax, 60
+     6 00000005 BF01000000              	mov rdi, 1
+     7 0000000A 0F05                    	syscall

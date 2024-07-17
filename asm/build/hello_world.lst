@@ -1,0 +1,20 @@
+     1                                  ; Hello world in x86_64 assembly (nasm)
+     2                                  
+     3                                  section .data
+     4 00000000 48656C6C6F2C20576F-     msg: db "Hello, World!", 10
+     4 00000009 726C64210A         
+     5                                  msg_len: equ $ - msg
+     6                                  
+     7                                  section .text
+     8                                  global _start
+     9                                  
+    10                                  _start:
+    11 00000000 B801000000              	mov rax, 1
+    12 00000005 BF01000000              	mov rdi, 1
+    13 0000000A 48BE-                   	mov rsi, msg
+    13 0000000C [0000000000000000] 
+    14 00000014 BA0E000000              	mov rdx, msg_len
+    15 00000019 0F05                    	syscall
+    16 0000001B B83C000000              	mov rax, 60
+    17 00000020 4831FF                  	xor rdi, rdi
+    18 00000023 0F05                    	syscall
