@@ -1,0 +1,27 @@
+%define O_NOCTTY 400o
+%define O_ACCMODE 003o
+%define O_ASYNC 20000o
+%define O_NONBLOCK 4000o
+%define O_APPEND 2000o
+%define O_EXCL 200o
+%define O_RDWR 2o
+%define O_RDONLY 0o
+%define O_SYNC 4010000o
+%define O_CREAT 100o
+%define O_TRUNC 1000o
+%define O_WRONLY 1o
+
+%define __S_IFBLK 060000o
+%define __S_IFIFO 010000o
+%define __S_IREAD 400o
+%define __S_ISVTX 1000o
+%define __S_IFCHR 020000o
+%define __S_IFREG 100000o
+%define __S_IFDIR 040000o
+%define __S_IFMT 170000o
+%define __S_IEXEC 100o
+%define __S_IWRITE 200o
+%define __S_IFLNK 120000o
+%define __S_IFSOCK 140000o
+%define __S_ISUID 4000o
+%define __S_ISGID 2000o

@@ -8,9 +8,10 @@ all: $(ASM_FILES:%=$(BUILD_DIR)/%) $(ASM_FILES:%=$(BUILD_DIR)/%.lst)
 $(BUILD_DIR)/%: $(SRC_DIR)/%.asm
 	@mkdir -p $(BUILD_DIR)
 	nasm -o $(BUILD_DIR)/$*.o -f elf64 $< -l $(BUILD_DIR)/$*.lst
-	ld -o $@ $(BUILD_DIR)/$*.o
+	ld -o $@ $(BUILD_DIR)/$*.o -libc -lfcntl
 	@rm $(BUILD_DIR)/*.o
 	@echo
 
 clean:
 	@rm -rf $(BUILD_DIR)
+
