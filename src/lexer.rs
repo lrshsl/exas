@@ -9,6 +9,9 @@ pub enum Token<'source> {
     #[regex("[0-9]+")]
     Int,
 
+    #[token("fn")]
+    KeywordFn,
+
     #[regex(r#""([^"\\]|\\["\\bnfrt]|u\p{hexdigit}{4})*""#)]
     String,
 

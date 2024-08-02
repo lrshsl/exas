@@ -1,9 +1,15 @@
 use std::{
     collections::HashMap,
+    rc::Rc,
     sync::atomic::{AtomicUsize, Ordering},
 };
 
 use crate::lexer::Token;
+
+mod expr;
+
+pub use expr::Expr;
+
 
 pub trait AstNode {
     fn build_context(&self, ctx: &mut ProgramContext, current_scope: ScopeId);
@@ -11,7 +17,11 @@ pub trait AstNode {
 }
 
 static HIGHEST_SCOPE: AtomicUsize = AtomicUsize::new(1);
-static INDENTATION_LEVEL: AtomicUsize = AtomicUsize::new(1);
+static INDENTATION_LEVEL: AtomicUsize = AtomicUsize::new(0);
+
+fn current_padding() -> String {
+    " ".repeat(INDENTATION_LEVEL.load(Ordering::Relaxed) * 4)
+}
 
 fn current_scope() -> usize {
     HIGHEST_SCOPE.load(Ordering::Relaxed)
@@ -42,27 +52,19 @@ pub struct Ast {
 impl Ast {
     pub fn print(&self) {
         for stmt in &self.stmts.elements {
-            println!("{:?}\n", stmt);
+            println!("{:?}", stmt);
         }
     }
 }
 
 impl AstNode for Ast {
     fn build_context(&self, ctx: &mut ProgramContext, _: ScopeId) {
-        for stmt in self.stmts.elements.iter() {
-            stmt.build_context(ctx, 0);
-        }
+        self.stmts.build_context(ctx, 0);
     }
 
     fn emit(&self, ctx: &ProgramContext, _: &mut Vec<ScopeId>) {
         let mut scope_stack = Vec::from([0]);
-        println!("{{");
-
-        for stmt in &self.stmts.elements {
-            stmt.emit(ctx, &mut scope_stack);
-        }
-
-        println!("}}");
+        self.stmts.emit(ctx, &mut scope_stack);
     }
 }
 
@@ -73,20 +75,26 @@ pub struct ListContent {
 
 impl AstNode for ListContent {
     fn build_context(&self, ctx: &mut ProgramContext, current_scope: ScopeId) {
+        let new_scope = next_scope();
+
         for element in self.elements.iter() {
-            element.build_context(ctx, current_scope);
+            element.build_context(ctx, new_scope);
         }
     }
 
     fn emit(&self, ctx: &ProgramContext, scope_stack: &mut Vec<usize>) {
         // Start a new scope
+        println!("{}{{", current_padding());
         scope_stack.push(next_scope());
+        INDENTATION_LEVEL.fetch_add(1, Ordering::Relaxed);
 
         for element in &self.elements {
             element.emit(ctx, scope_stack);
         }
 
+        INDENTATION_LEVEL.fetch_sub(1, Ordering::Relaxed);
         scope_stack.pop();
+        println!("{}}}", current_padding());
     }
 }
 
@@ -111,7 +119,7 @@ impl AstNode for Ident {
                 .filter(|symbol| scope_stack.iter().any(|scope_id| scope_id == &symbol.scope));
             match scope_matches.count() {
                 0 => panic!("<{}> not defined in this scope", self.0),
-                1 => println!("Int({})", self.0),
+                1 => println!("{}Int({})", current_padding(), self.0),
                 _ => panic!("<{}> defined multiple times in this scope", self.0),
             }
         }
@@ -121,110 +129,31 @@ impl AstNode for Ident {
 #[derive(Debug, Clone)]
 pub struct Int(pub i32);
 
-#[derive(Clone)]
-pub enum Expr {
-    FnDef(FnDef),
-    FnCall(FnCall),
-
-    Ident(Ident),
-    Int(Int),
-    String(&'static str),
+#[derive(Clone, Debug)]
+pub struct Assign {
+    pub name: &'static str,
+    pub value: Rc<Expr>,
 }
 
-impl AstNode for Expr {
+impl AstNode for Assign {
     fn build_context(&self, ctx: &mut ProgramContext, current_scope: ScopeId) {
-        match self {
-            Expr::FnDef(fn_def) => {
-                let entry = ctx
-                    .symbols
-                    .entry(fn_def.signature.name)
-                    .or_insert(Vec::new());
+        let entry = ctx.symbols.entry(self.name).or_insert(Vec::new());
 
-                if entry.iter().any(|symbol| symbol.scope == current_scope) {
-                    panic!(
-                        "Expr {} already defined in this scope, fn overloading not yet supported",
-                        fn_def.signature.name
-                    );
-                }
-                entry.push(Symbol {
-                    scope: current_scope,
-                    value: Expr::FnDef(fn_def.clone()),
-                });
-
-                fn_def.build_context(ctx, next_scope());
-            }
-            Expr::Ident(ident) => ident.build_context(ctx, current_scope),
-
-            Expr::Int(_) => {}
-            Expr::String(_) => {}
-            Expr::FnCall(_) => {}
+        if entry.iter().any(|symbol| symbol.scope == current_scope) {
+            panic!(
+                "Assignment of <{}> shadows other variable in scope",
+                self.name
+            );
         }
+        entry.push(Symbol {
+            scope: current_scope,
+            value: Expr::Assign(self.clone()),
+        });
     }
 
     fn emit(&self, ctx: &ProgramContext, scope_stack: &mut Vec<ScopeId>) {
-        match self {
-            Expr::FnDef(fn_def) => {
-                if let Some(name_matches) = ctx.symbols.get(fn_def.signature.name) {
-                    let scope_matches = name_matches.iter().filter(|symbol| {
-                        // TODO: Check if parameters match
-                        scope_stack.iter().any(|scope_id| scope_id == &symbol.scope)
-                    });
-                    match scope_matches.count() {
-                        0 => panic!("Function <{}> not accessable in this scope (scope {})",
-                            fn_def.signature.name, scope_stack.last().unwrap()),
-                        1 => {}
-                        _ => panic!("Function <{}> defined multiple times, fn overloading not yet supported",
-                            fn_def.signature.name),
-                    }
-                    fn_def.emit(ctx, scope_stack);
-                } else {
-                    panic!("Function <{}> not defined", fn_def.signature.name,);
-                }
-            }
-            Expr::Ident(ident) => {
-                if let Some(name_matches) = ctx.symbols.get(ident.0) {
-                    let scope_matches = name_matches.iter().filter(|symbol| {
-                        scope_stack.iter().any(|scope_id| scope_id == &symbol.scope)
-                    });
-                    match scope_matches.count() {
-                        0 => panic!(
-                            "<{}> not defined in this scope (scope {})",
-                            ident.0,
-                            scope_stack.last().unwrap()
-                        ),
-                        1 => {}
-                        _ => panic!(
-                            "<{}> defined multiple times in this scope (scope {})",
-                            ident.0,
-                            scope_stack.last().unwrap()
-                        ),
-                    }
-                    ident.emit(ctx, scope_stack);
-                } else {
-                    panic!(
-                        "<{}> not defined in this scope (scope {})",
-                        ident.0,
-                        scope_stack.last().unwrap()
-                    );
-                }
-            }
-
-            Expr::Int(int) => println!("{}", int.0),
-            Expr::String(string) => println!("{}", string),
-            Expr::FnCall(fn_call) => fn_call.emit(ctx, scope_stack),
-        }
-    }
-}
-
-impl std::fmt::Debug for Expr {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Expr::FnDef(fn_def) => write!(f, "{:?}", fn_def),
-            Expr::FnCall(fn_call) => write!(f, "{:?}", fn_call),
-            Expr::Ident(ident) => write!(f, "{:?}", ident),
-            Expr::Int(int) => write!(f, "{:?}", int),
-            Expr::String(string) => write!(f, "{:?}", string),
-        }
+        println!("{}let {} = ", current_padding(), self.name);
+        self.value.emit(ctx, scope_stack);
     }
 }
 
@@ -266,14 +195,13 @@ impl RawToken {
 
 #[derive(Debug, Clone)]
 pub struct FnSignature {
-    pub name: &'static str,
     pub params: Vec<Param>,
 }
 
 #[derive(Debug, Clone)]
-struct Param {
-    name: &'static str,
-    pattern: MatchPattern,
+pub struct Param {
+    pub name: &'static str,
+    pub pattern: MatchPattern,
 }
 
 #[derive(Debug, Clone)]
@@ -294,14 +222,8 @@ impl AstNode for FnDef {
     }
 
     fn emit(&self, ctx: &ProgramContext, scope_stack: &mut Vec<ScopeId>) {
-        println!(
-            "Fn(name = {}, params = {:?}, scope: {}) {{",
-            self.signature.name,
-            self.signature.params,
-            scope_stack.last().unwrap()
-        );
+        println!("{}fn {:?}", current_padding(), self.signature.params);
         self.body.emit(ctx, scope_stack);
-        println!("}} // end fn {}", self.signature.name);
     }
 }
 
@@ -315,7 +237,12 @@ impl AstNode for FnCall {
     fn build_context(&self, ctx: &mut ProgramContext, current_scope: ScopeId) {}
 
     fn emit(&self, ctx: &ProgramContext, scope_stack: &mut Vec<ScopeId>) {
-        println!("FnCall({:?}, {:?})", self.fn_name, self.args);
+        println!(
+            "{}FnCall({:?}, {:?})",
+            current_padding(),
+            self.fn_name,
+            self.args
+        );
     }
 }
 

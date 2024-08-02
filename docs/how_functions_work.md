@@ -89,7 +89,7 @@ type Unsigned = ([a: Any]) {
     is (typeof a) .. {
 
         .. u8 | u16 | u32 | u64 | u128 | usize ?
-            { true },
+            true,
 
         .. other? {
             comptime-error typeMismatch other " is not an unsigned number",
