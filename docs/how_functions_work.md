@@ -1,20 +1,35 @@
 
 # Functions | macros - pattern matching
 
-## Match literal and symbols
+Functions have a **name**, **parameters** and a **body**. The following is the
+definition of at function called `fn-name` that takes two arguments, `arg1` and
+`arg2`.
 
+```exas
+fn-name = (arg1 arg2) { }
+```
+
+Arguments are matched literally unless `[]` are used. Thus functions in exas
+can do more than functions in most languages (think functions and macros
+combined).
+
+## Match literals and symbols
+
+This means that the following function call:
 ```exas
 fn-name "str lit" ident 5
 ```
 
-Matches the function declarations of:
+matches the following function declaration:
 
 ```exas
-fn-name = ("str lit" Ident 5) { }
+fn-name = ("str lit" ident 5) { }
 ```
-where no argument is actually an argument, but rather simply matched against.
-The above declaration would not match, if the string literal, the identifier
-`ident` or the number were any different. None of these would match:
+
+There are more matching function declarations, but this is the most specific
+possible. Thus, no argument is actually an argument, but rather simply matched
+against. The above declaration would not match if the string literal, the
+identifier `ident` or the number were any different. None of these would match:
 
 ```exas
 fn-name "another" ident 5,
@@ -24,7 +39,7 @@ fn-name "str lit" ident 6,
 
 ## Match types
 
-Usually, functions are matched less strictly, e. g. through their types:
+Usually, functions are declared less explicit, e. g. through their types:
 
 ```exas
 fn-name = ([:Str] [:Ident] [:Number]) { }
@@ -46,6 +61,8 @@ fn-name = ([arg1: Str] [arg2: Ident] [arg3: Number]) {
 
 ## Where clause
 
+You know Rust? Rust is cool.
+
 ```exas
 fn-name = ([arg1] [arg2] [arg3])
     where
@@ -65,7 +82,7 @@ and `arg3` respectively. This is done at compiletime, and the functions will
 throw a miss matched types error when compiling.
 
 This means that more than just the usual type information can be encoded into
-an exas type. Lets create some nice numeric types for example:
+an exas type. Let's create some nice numeric types for example:
 
 ```exas
 type Unsigned = ([a: Any]) {
@@ -75,7 +92,7 @@ type Unsigned = ([a: Any]) {
             { true },
 
         .. other? {
-            comptime-error TypeMismatch other " is not an unsigned number",
+            comptime-error typeMismatch other " is not an unsigned number",
             false
         },
     }
@@ -85,7 +102,7 @@ type Signed = ([a: Any]) {
     match (typeof a) {
         .. i8 | i16 | i32 | i64 | i128 | isize => true,
         .. other => {
-            comptime-error TypeMismatch other " is not a signed number",
+            comptime-error typeMismatch other " is not a signed number",
             false
         },
     }
@@ -106,8 +123,8 @@ type Number = ([a: Any]) {
 > Note: The syntax of `match` | `is` statements is not consistent. It is
 > unclear yet, which version it's gonna be.
 
-The `type` keyword guarantees that the function returns `bool` and may throw a
-`comptime-error`.
+The `type` keyword guarantees that the function runs at compile time, returns
+`bool` and may throw a `comptime-error`.
 
 # Why?
 

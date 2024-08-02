@@ -1,10 +1,21 @@
 use crate::{ast::*, lexer::Token};
 
-#[derive(Debug)]
 pub enum ParsingError {
     AbruptEof,
     UnexpectedToken(Token<'static>, Vec<Token<'static>>),
     TokenError(<Token<'static> as logos::Logos<'static>>::Error),
+}
+
+impl std::fmt::Debug for ParsingError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            ParsingError::AbruptEof => write!(f, "AbruptEof"),
+            ParsingError::UnexpectedToken(token, expected) => {
+                write!(f, "UnexpectedToken({:?}, {:?})", token, expected)
+            }
+            ParsingError::TokenError(error) => write!(f, "TokenError({:?})", error),
+        }
+    }
 }
 
 macro_rules! unpack_token {
@@ -45,8 +56,7 @@ impl Parser {
                     )));
                 }
                 Token::String => {
-                    ast.stmts.elements.push(Expr::String(
-                            TokString(self.lexer.slice())));
+                    ast.stmts.elements.push(Expr::String(self.lexer.slice()));
                 }
                 Token::Ident => {
                     let ident = self.lexer.slice();
@@ -96,7 +106,7 @@ impl Parser {
 
     fn parse_raw_token(&mut self) -> Result<RawToken, ParsingError> {
         match self.lexer.next() {
-            Some(Ok(Token::String)) => Ok(RawToken::String(TokString(self.lexer.slice()))),
+            Some(Ok(Token::String)) => Ok(RawToken::String(self.lexer.slice())),
             Some(Ok(Token::Int)) => Ok(RawToken::Int(Int(
                 self
                     .lexer
