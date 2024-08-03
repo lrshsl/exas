@@ -1,45 +1,47 @@
-grammar bnf;		
+grammar bnf;
 
 ast
-    : listcontent EOF
-    ;
-
-list
-    : '{' listcontent '}'  // Immutable
-    | '[' listcontent ']'  // Mutable
-    ;
-
-listcontent
-    : expr (',' expr?)*
-    ;
-
-expr
-    : primaryExpression
-    | expr ('*'|'/') expr
-    | expr ('+'|'-') expr
-    | expr ('<'|'>'|'=='|'!='|'<='|'>=') expr
-    | expr '&&' expr
-    | expr '||' expr
-    ;
-
-primaryExpression
-    : fn
-	 | fnCall
-    | IntLiteral
-    | StringLiteral
-    | Id
-    | '(' expr ')'
-    ;
-
-fn
-    : '(' Id* ')' list
-    ;
-
-fnCall
-	: Id ( anyToken | list | '(' expr ')' | CommentOrDoc )*
+	: listcontent EOF
 	;
 
-//---|> Lexer rules <|---//
+list
+	: '{' listcontent '}'  // Immutable
+	| '[' listcontent ']'  // Mutable
+	;
+
+listcontent
+	: (Annex? expr? ',')* expr? Annex?
+	;
+
+expr
+	: lambda
+	| IntLiteral
+	| StringLiteral
+	| Id '<-' expr		// Move
+	| Id '=' expr		// Label
+	| fnCall
+	| '(' expr ')'
+	| list
+	;
+
+lambda
+	: 'fn' param* list
+	;
+
+fnCall
+	: Id argument*
+	;
+
+argument
+	: anyToken
+	| list
+	| '(' expr ')'
+	;
+
+param
+	: anyToken
+	| '[' Id? (':' Id)? ']'
+	;
 
 anyToken
 	: Id
@@ -51,67 +53,76 @@ anyToken
 	| '\\' | '^' | '_' | '`' | '|' | '~'
 	;
 
+//---|> Lexer rules <|---//
+
 CommentOrDoc
-    : (LineComment | BlockComment | InlineDoc | BlockDoc) -> channel(HIDDEN)
-    ;
+	: (LineComment | BlockComment | InlineDoc | BlockDoc) -> channel(HIDDEN)
+	;
 
 LineComment
-    : '//' ~[\n\r]*
-    ;
+	: '//' ~[\n\r]*
+	;
 
 BlockComment
-    : '/..' (CommentOrDoc | ~[.])*? '../'
-    ;
+	: '/..' (CommentOrDoc | ~[.])*? '../'
+	;
 
+// Tag
 InlineDoc
-    : '\'' ~[\n\r]* '\'' -> channel(HIDDEN)
-    ;
+	: '\'' ~[\n\r]* '\'' -> channel(HIDDEN)
+	;
 
 BlockDoc
-    : '///' ~[\n\r]* -> channel(HIDDEN)
-    ;
+	: '///' ~[\n\r]* -> channel(HIDDEN)
+	;
+
+Annex
+	: '|' ~[\n\r]*
+	;
 
 Reg
-    : 'r' [0-9]+
-    ;
+	: 'r' [0-9]+
+	;
 
 
 // String Literals
 
 StringLiteral
-    : RawStringLiteral
-    | FormatString
-    ;
+	: RawStringLiteral
+	| FormatString
+	;
 
 RawStringLiteral
-    : '"' .*? '"'
-    ;
+	: '"' .*? '"'
+	;
 
 FormatString
-    : 'f' '"' .*? '"'
-    ;
+	: 'f' '"' .*? '"'
+	;
 
 
 // Numeric Literals
 
 IntLiteral
-    : DIGIT+
-    ;
+	: DIGIT+
+	;
 
 Id
-    : ALPHA (ALPHA | DIGIT)*
-    ;
+	: ALPHA (ALPHA | DIGIT)*
+	;
 
 
 // Fragments
 
 fragment ALPHA
-    : [A-Za-z]
-    ;
+	: [A-Za-z]
+	;
 
 fragment DIGIT
-    : [0-9]
-    ;
+	: [0-9]
+	;
 
-WS  : [ \t\r\n]+ -> skip ;
+WS 
+	: [ \t\r\n]+ -> skip
+	;
 
