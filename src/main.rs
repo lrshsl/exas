@@ -1,31 +1,41 @@
 use std::collections::HashMap;
 
-use lexer::Token;
-use parser::{Parser, ParsingError};
-use ast::{AstNode, ProgramContext, Ast};
+use ast::{AstNode, ProgramContext};
+use lexer::{FileContext, Token};
 use logos::Logos;
+use parser::Parser;
+use parsing_error::ParsingError;
 
+mod ast;
 mod lexer;
 mod parser;
-mod ast;
+mod parsing_error;
 
 fn compile(input: &'static str) -> Result<(), ParsingError> {
-    let mut parser = Parser::new(Token::lexer(input));
-    let ast = parser.parse()?;
-
     println!("========== Source ===========");
     println!("{}", input);
     println!();
 
     println!("==========  AST   ===========");
+    let mut parser = Parser::new(Token::lexer_with_extras(
+        input,
+        FileContext {
+            filename: "test".to_string(),
+            line: 1,
+        },
+    ));
+    let ast = parser.parse()?;
+
     ast.print();
     println!();
 
-    let mut program_ctx = ProgramContext { symbols: HashMap::new() };
+    let mut program_ctx = ProgramContext {
+        symbols: HashMap::new(),
+    };
     ast.build_context(&mut program_ctx, 0);
 
     println!("==========  Emit  ===========");
-    ast.emit(&program_ctx, &mut vec![0]);
+    ast.check_and_emit(&program_ctx, &mut vec![0]);
 
     println!("\n");
     Ok(())
@@ -33,7 +43,7 @@ fn compile(input: &'static str) -> Result<(), ParsingError> {
 
 fn main() -> Result<(), ParsingError> {
     let inputs = [
-    r##"
+        r##"
         print x,
         set x = 10,
         let x = 1,, p89,
@@ -41,13 +51,11 @@ fn main() -> Result<(), ParsingError> {
             what ~,
             what ><<~-?>
     "##,
-
-    r##"
+        r##"
         set x = 10,
         print x,
     "##,
-
-    r##"
+        r##"
         set file = openfile "hello.txt",
         closefile = fn filename {
             print filename "closed",
@@ -55,8 +63,7 @@ fn main() -> Result<(), ParsingError> {
         },
         print x
     "##,
-
-    r##"
+        r##"
         closefile = fn filename {
             filehandle = (gethandle filename),
         },
@@ -70,4 +77,3 @@ fn main() -> Result<(), ParsingError> {
 
     Ok(())
 }
-

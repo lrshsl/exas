@@ -8,11 +8,19 @@
 // - registers
 // - 
 
-f1 = () {
-    print "f1 ran",
+f1 = fn {				| function f1
+    print "f1 ran",	| prints a line
+	 x + 1,				| returns x + 1
 },
 
-f2 = (x, y) {
-    print { "f2 ran with x = ", x, " and y = ", y }
+f2 = fn x y {
+    print "f2 ran with x = " x " and y = " y
 },
+
+OR = fn x  y {
+},
+
+let = fn var = value {
+	 print var "set to " value
+}
 

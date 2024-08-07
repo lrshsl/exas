@@ -1,11 +1,6 @@
-use crate::{
-    ast::{
-        current_padding, current_scope, next_scope, Assign, FnCall, FnDef, Ident, Int, ScopeId,
-        Symbol,
-    },
-    parser::ParsingError,
-    AstNode, ProgramContext,
-};
+use super::*;
+
+use super::assign::parse_assign;
 
 #[derive(Clone)]
 pub enum Expr {
@@ -15,7 +10,7 @@ pub enum Expr {
     Assign(Assign),
 
     Ident(Ident),
-    Int(Int),
+    Int(i32),
     String(&'static str),
 }
 
@@ -32,9 +27,9 @@ impl AstNode for Expr {
         }
     }
 
-    fn emit(&self, ctx: &ProgramContext, scope_stack: &mut Vec<ScopeId>) {
+    fn check_and_emit(&self, ctx: &ProgramContext, scope_stack: &mut Vec<ScopeId>) {
         match self {
-            Expr::FnDef(fn_def) => fn_def.emit(ctx, scope_stack),
+            Expr::FnDef(fn_def) => fn_def.check_and_emit(ctx, scope_stack),
             Expr::Ident(ident) => {
                 // Check if in scope
                 if let Some(name_matches) = ctx.symbols.get(ident.0) {
@@ -47,7 +42,7 @@ impl AstNode for Expr {
                             ident.0,
                             scope_stack.last().unwrap()
                         ),
-                        1 => ident.emit(ctx, scope_stack),
+                        1 => ident.check_and_emit(ctx, scope_stack),
                         _ => panic!(
                             "<{}> defined multiple times in this scope (scope {})",
                             ident.0,
@@ -63,10 +58,10 @@ impl AstNode for Expr {
                 }
             }
 
-            Expr::Assign(assign) => assign.emit(ctx, scope_stack),
-            Expr::Int(int) => println!("{}Int({})", current_padding(), int.0),
+            Expr::Assign(assign) => assign.check_and_emit(ctx, scope_stack),
+            Expr::Int(int) => println!("{}Int({})", current_padding(), int),
             Expr::String(string) => println!("{}String({})", current_padding(), string),
-            Expr::FnCall(fn_call) => fn_call.emit(ctx, scope_stack),
+            Expr::FnCall(fn_call) => fn_call.check_and_emit(ctx, scope_stack),
         }
     }
 }
@@ -80,6 +75,73 @@ impl std::fmt::Debug for Expr {
             Expr::Ident(ident) => write!(f, "{:?}", ident),
             Expr::Int(int) => write!(f, "{:?}", int),
             Expr::String(string) => write!(f, "{:?}", string),
+        }
+    }
+}
+
+impl Parsable for Expr {
+    /// Should be called when on the first token
+    fn parse(parser: &mut Parser) -> Result<Expr, ParsingError> {
+        let token = match parser.current_token.as_ref() {
+            Some(Ok(token)) => token,
+            Some(Err(error)) => return Err(ParsingError::TokenError(*error)),
+            None => {
+                return Err(ParsingError::AbruptEof(
+                    "expr",
+                    parser.lexer.extras.clone(),
+                    vec![
+                        Token::Symbol("("),
+                        Token::Ident,
+                        Token::Int(0),
+                        Token::String,
+                        Token::KeywordFn,
+                    ],
+                ))
+            }
+        };
+        match token {
+            Token::Symbol("(") => {
+                parser.advance();
+                Expr::parse(parser)
+            }
+            Token::Ident => {
+                let ident = parser.current_slice;
+                parser.advance();
+                match parser.current_token {
+                    Some(Ok(Token::Symbol("="))) => {
+                        parser.advance();
+                        Ok(parse_assign(parser, ident)?)
+                    }
+                    None | Some(Ok(_)) => {
+                        parser.advance();
+                        Ok(Expr::FnCall(FnCall {
+                            name: ident,
+                            args: ArgumentList::parse(parser)?,
+                        }))
+                    }
+                    Some(Err(error)) => Err(ParsingError::TokenError(error)),
+                }
+            }
+            Token::Int(val) => {
+                let val = *val;
+                parser.advance();
+                Ok(Expr::Int(val))
+            }
+            Token::String => {
+                let strval = parser.current_slice;
+                parser.advance();
+                Ok(Expr::String(strval))
+            }
+            Token::KeywordFn => {
+                parser.advance();
+                Ok(Expr::FnDef(FnDef::parse(parser)?))
+            }
+            _ => Err(ParsingError::UnexpectedToken(
+                "expr",
+                parser.lexer.extras.clone(),
+                token.clone(),
+                vec![Token::Ident, Token::Int(0), Token::String, Token::KeywordFn],
+            )),
         }
     }
 }
