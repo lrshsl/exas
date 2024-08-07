@@ -1,3 +1,5 @@
+use std::fmt::Formatter;
+
 use scope::change_indentation;
 
 use super::*;
@@ -16,19 +18,24 @@ impl AstNode for ListContent {
         }
     }
 
-    fn check_and_emit(&self, ctx: &ProgramContext, scope_stack: &mut Vec<usize>) {
+    fn check_and_emit<Output: std::io::Write>(
+        &self,
+        output: &mut Output,
+        ctx: &ProgramContext,
+        scope_stack: &mut Vec<ScopeId>,
+    ) -> std::io::Result<()> {
         // Start a new scope
-        println!("{}{{", current_padding());
+        writeln!(output, "{}{{", current_padding())?;
         scope_stack.push(next_scope());
         change_indentation(scope::IndentationChange::More);
 
         for element in &self.elements {
-            element.check_and_emit(ctx, scope_stack);
+            element.check_and_emit(output, ctx, scope_stack)?;
         }
 
         change_indentation(scope::IndentationChange::Less);
         scope_stack.pop();
-        println!("{}}}", current_padding());
+        writeln!(output, "{}}}", current_padding())
     }
 }
 

@@ -15,13 +15,19 @@ impl std::fmt::Debug for FnCall {
 impl AstNode for FnCall {
     fn build_context(&self, ctx: &mut ProgramContext, current_scope: ScopeId) {}
 
-    fn check_and_emit(&self, ctx: &ProgramContext, scope_stack: &mut Vec<ScopeId>) {
-        println!(
+    fn check_and_emit<Output: std::io::Write>(
+        &self,
+        output: &mut Output,
+        ctx: &ProgramContext,
+        scope_stack: &mut Vec<ScopeId>,
+    ) -> std::io::Result<()> {
+        writeln!(
+            output,
             "{}FnCall({:?}, {:?})",
             current_padding(),
             self.name,
             self.args
-        );
+        )
     }
 }
 

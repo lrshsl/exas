@@ -27,41 +27,48 @@ impl AstNode for Expr {
         }
     }
 
-    fn check_and_emit(&self, ctx: &ProgramContext, scope_stack: &mut Vec<ScopeId>) {
+    fn check_and_emit<Output: std::io::Write>(
+        &self,
+        output: &mut Output,
+        ctx: &ProgramContext,
+        scope_stack: &mut Vec<ScopeId>,
+    ) -> std::io::Result<()> {
         match self {
-            Expr::FnDef(fn_def) => fn_def.check_and_emit(ctx, scope_stack),
+            Expr::FnDef(fn_def) => fn_def.check_and_emit(output, ctx, scope_stack),
             Expr::Ident(ident) => {
                 // Check if in scope
                 if let Some(name_matches) = ctx.symbols.get(ident.0) {
                     let scope_matches = name_matches.iter().filter(|symbol| {
-                        scope_stack.iter().any(|scope_id| scope_id == &symbol.scope)
+                        ctx.scope_stack
+                            .iter()
+                            .any(|scope_id| scope_id == &symbol.scope)
                     });
                     match scope_matches.count() {
                         0 => panic!(
                             "<{}> not defined in this scope (scope {})",
                             ident.0,
-                            scope_stack.last().unwrap()
+                            ctx.scope_stack.last().unwrap()
                         ),
-                        1 => ident.check_and_emit(ctx, scope_stack),
+                        1 => ident.check_and_emit(output, ctx, scope_stack),
                         _ => panic!(
                             "<{}> defined multiple times in this scope (scope {})",
                             ident.0,
-                            scope_stack.last().unwrap()
+                            ctx.scope_stack.last().unwrap()
                         ),
                     }
                 } else {
                     panic!(
                         "<{}> not defined in this scope (scope {})",
                         ident.0,
-                        scope_stack.last().unwrap()
+                        ctx.scope_stack.last().unwrap()
                     );
                 }
             }
 
-            Expr::Assign(assign) => assign.check_and_emit(ctx, scope_stack),
-            Expr::Int(int) => println!("{}Int({})", current_padding(), int),
-            Expr::String(string) => println!("{}String({})", current_padding(), string),
-            Expr::FnCall(fn_call) => fn_call.check_and_emit(ctx, scope_stack),
+            Expr::Assign(assign) => assign.check_and_emit(output, ctx, scope_stack),
+            Expr::Int(int) => write!(output, "{}Int({})", current_padding(), int),
+            Expr::String(string) => write!(output, "{}String({})", current_padding(), string),
+            Expr::FnCall(fn_call) => fn_call.check_and_emit(output, ctx, scope_stack),
         }
     }
 }

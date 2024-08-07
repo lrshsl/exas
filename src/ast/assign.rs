@@ -1,4 +1,7 @@
+use scope::change_indentation;
+
 use super::*;
+use std::io;
 use std::rc::Rc;
 
 use super::{AstNode, Expr, ProgramContext, ScopeId, Symbol};
@@ -25,9 +28,17 @@ impl AstNode for Assign {
         });
     }
 
-    fn check_and_emit(&self, ctx: &ProgramContext, scope_stack: &mut Vec<ScopeId>) {
-        println!("{}let {} = ", current_padding(), self.name);
-        self.value.check_and_emit(ctx, scope_stack);
+    fn check_and_emit<Output: io::Write>(
+        &self,
+        output: &mut Output,
+        ctx: &ProgramContext,
+        scope_stack: &mut Vec<ScopeId>,
+    ) -> io::Result<()> {
+        writeln!(output, "{}let {} = ", current_padding(), self.name)?;
+        change_indentation(scope::IndentationChange::More);
+        self.value.check_and_emit(output, ctx, scope_stack)?;
+        change_indentation(scope::IndentationChange::Less);
+        Ok(())
     }
 }
 

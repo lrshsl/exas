@@ -1,3 +1,5 @@
+use std::io;
+
 pub(self) use crate::lexer::Token;
 pub(self) use crate::parsing_error::ParsingError;
 
@@ -34,7 +36,12 @@ use crate::parser::Parser;
 
 pub trait AstNode {
     fn build_context(&self, ctx: &mut ProgramContext, current_scope: ScopeId);
-    fn check_and_emit(&self, ctx: &ProgramContext, scope_stack: &mut Vec<ScopeId>);
+    fn check_and_emit<Output: io::Write>(
+        &self,
+        output: &mut Output,
+        ctx: &ProgramContext,
+        scope_stack: &mut Vec<ScopeId>,
+    ) -> io::Result<()>;
 }
 
 pub trait Parsable {
@@ -61,7 +68,12 @@ impl AstNode for Ast {
         self.stmts.build_context(ctx, 0);
     }
 
-    fn check_and_emit(&self, ctx: &ProgramContext, scope_stack: &mut Vec<ScopeId>) {
-        self.stmts.check_and_emit(ctx, scope_stack);
+    fn check_and_emit<Output: std::io::Write>(
+        &self,
+        output: &mut Output,
+        ctx: &ProgramContext,
+        scope_stack: &mut Vec<ScopeId>,
+    ) -> std::io::Result<()> {
+        self.stmts.check_and_emit(output, ctx, scope_stack)
     }
 }

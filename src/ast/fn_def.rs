@@ -18,9 +18,19 @@ impl AstNode for FnDef {
         self.body.build_context(ctx, next_scope());
     }
 
-    fn check_and_emit(&self, ctx: &ProgramContext, scope_stack: &mut Vec<ScopeId>) {
-        println!("{}fn {:?} => ", current_padding(), self.signature.params);
-        self.body.check_and_emit(ctx, scope_stack);
+    fn check_and_emit<Output: std::io::Write>(
+        &self,
+        output: &mut Output,
+        ctx: &ProgramContext,
+        scope_stack: &mut Vec<ScopeId>,
+    ) -> std::io::Result<()> {
+        writeln!(
+            output,
+            "{}fn {:?} => ",
+            current_padding(),
+            self.signature.params
+        )?;
+        self.body.check_and_emit(output, ctx, scope_stack)
     }
 }
 

@@ -80,7 +80,6 @@ mod tests {
             FileContext {
                 filename: "test2".to_string(),
                 line: 1,
-                column: 1,
             },
         );
         assert_eq!(lex.next(), Some(Ok(Token::Ident)));
@@ -110,7 +109,6 @@ mod tests {
             FileContext {
                 filename: "test3".to_string(),
                 line: 1,
-                column: 1,
             },
         );
         assert_eq!(lex.next(), Some(Ok(Token::Ident)));

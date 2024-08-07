@@ -38,6 +38,7 @@ pub(super) type ScopeId = usize;
 
 pub struct ProgramContext {
     pub symbols: SymbolTable,
+    pub scope_stack: Vec<ScopeId>,
 }
 
 pub type SymbolTable = HashMap<&'static str, Vec<Symbol>>;

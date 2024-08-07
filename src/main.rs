@@ -1,3 +1,6 @@
+#![feature(type_alias_impl_trait)]
+#![feature(trait_alias)]
+
 use std::collections::HashMap;
 
 use ast::{AstNode, ProgramContext};
@@ -68,11 +71,14 @@ fn parse_and_print(input: &'static str) -> Result<(), ParsingError> {
 
     let mut program_ctx = ProgramContext {
         symbols: HashMap::new(),
+        scope_stack: Vec::new(),
     };
     ast.build_context(&mut program_ctx, 0);
 
     println!("==========  Emit  ===========");
-    ast.check_and_emit(&program_ctx, &mut vec![0]);
+    let mut output = std::io::stdout();
+    ast.check_and_emit(&mut output, &program_ctx, &mut vec![])
+        .unwrap();
 
     println!("\n");
     Ok(())
