@@ -11,7 +11,44 @@ mod lexer;
 mod parser;
 mod parsing_error;
 
-fn compile(input: &'static str) -> Result<(), ParsingError> {
+fn main() -> Result<(), ParsingError> {
+    for input in TEST_INPUTS {
+        parse_and_print(input)?;
+    }
+
+    Ok(())
+}
+
+const TEST_INPUTS: [&str; 4] = [
+    r##"
+        print x,
+        set x = 10,
+        let x = 1,, p89,
+            8, "sreti", "hello", 90, a 90, 
+            what ~,
+            what ><<~-?>
+    "##,
+    r##"
+        set x = 10,
+        print x,
+    "##,
+    r##"
+        set file = openfile "hello.txt",
+        closefile = fn filename {
+            print filename "closed",
+            close filehandle
+        },
+        print x
+    "##,
+    r##"
+        closefile = fn filename {
+            filehandle = (gethandle filename),
+        },
+        print (closefile "hello.exas")
+    "##,
+];
+
+fn parse_and_print(input: &'static str) -> Result<(), ParsingError> {
     println!("========== Source ===========");
     println!("{}", input);
     println!();
@@ -38,42 +75,5 @@ fn compile(input: &'static str) -> Result<(), ParsingError> {
     ast.check_and_emit(&program_ctx, &mut vec![0]);
 
     println!("\n");
-    Ok(())
-}
-
-fn main() -> Result<(), ParsingError> {
-    let inputs = [
-        r##"
-        print x,
-        set x = 10,
-        let x = 1,, p89,
-            8, "sreti", "hello", 90, a 90, 
-            what ~,
-            what ><<~-?>
-    "##,
-        r##"
-        set x = 10,
-        print x,
-    "##,
-        r##"
-        set file = openfile "hello.txt",
-        closefile = fn filename {
-            print filename "closed",
-            close filehandle
-        },
-        print x
-    "##,
-        r##"
-        closefile = fn filename {
-            filehandle = (gethandle filename),
-        },
-        print (closefile "hello.exas")
-    "##,
-    ];
-
-    for input in inputs {
-        compile(input)?;
-    }
-
     Ok(())
 }

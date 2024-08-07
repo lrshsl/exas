@@ -32,7 +32,7 @@ impl Parsable for ArgumentList {
         let mut args = vec![];
         while let Some(Ok(token)) = parser.current_token.as_ref() {
             match token {
-                Token::Symbol(",") => {
+                Token::Symbol(")") | Token::Symbol(",") => {
                     parser.advance();
                     break;
                 }

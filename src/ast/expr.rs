@@ -112,13 +112,10 @@ impl Parsable for Expr {
                         parser.advance();
                         Ok(parse_assign(parser, ident)?)
                     }
-                    None | Some(Ok(_)) => {
-                        parser.advance();
-                        Ok(Expr::FnCall(FnCall {
-                            name: ident,
-                            args: ArgumentList::parse(parser)?,
-                        }))
-                    }
+                    None | Some(Ok(_)) => Ok(Expr::FnCall(FnCall {
+                        name: ident,
+                        args: ArgumentList::parse(parser)?,
+                    })),
                     Some(Err(error)) => Err(ParsingError::TokenError(error)),
                 }
             }
