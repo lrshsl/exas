@@ -4,6 +4,7 @@ use super::*;
 
 use std::{
     collections::HashMap,
+    rc::Rc,
     sync::atomic::{AtomicUsize, Ordering},
 };
 
@@ -17,10 +18,6 @@ pub enum IndentationChange {
 
 pub(super) fn current_padding() -> String {
     " ".repeat(INDENTATION_LEVEL.load(Ordering::Relaxed) * 4)
-}
-
-pub(super) fn current_scope() -> usize {
-    HIGHEST_SCOPE.load(Ordering::Relaxed)
 }
 
 pub(super) fn next_scope() -> usize {
@@ -38,7 +35,6 @@ pub(super) type ScopeId = usize;
 
 pub struct ProgramContext {
     pub symbols: SymbolTable,
-    pub scope_stack: Vec<ScopeId>,
 }
 
 pub type SymbolTable = HashMap<&'static str, Vec<Symbol>>;
@@ -46,5 +42,5 @@ pub type SymbolTable = HashMap<&'static str, Vec<Symbol>>;
 #[derive(Debug)]
 pub struct Symbol {
     pub scope: ScopeId,
-    pub value: Expr,
+    pub value: Rc<Expr>,
 }

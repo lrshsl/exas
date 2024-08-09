@@ -1,21 +1,34 @@
+use scope::change_indentation;
+
 use crate::{ast::current_padding, parser::Parser};
 
 use super::*;
 
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 pub struct FnSignature {
     pub params: Vec<Param>,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 pub struct FnDef {
     pub signature: FnSignature,
     pub body: ListContent,
 }
 
+impl std::fmt::Debug for FnDef {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "FnDef (Params: {params:?} {body:?})",
+            params = self.signature.params,
+            body = self.body
+        )
+    }
+}
+
 impl AstNode for FnDef {
     fn build_context(&self, ctx: &mut ProgramContext, current_scope: usize) {
-        self.body.build_context(ctx, next_scope());
+        self.body.build_context(ctx, current_scope);
     }
 
     fn check_and_emit<Output: std::io::Write>(
@@ -24,12 +37,13 @@ impl AstNode for FnDef {
         ctx: &ProgramContext,
         scope_stack: &mut Vec<ScopeId>,
     ) -> std::io::Result<()> {
-        writeln!(
-            output,
-            "{}fn {:?} => ",
-            current_padding(),
-            self.signature.params
-        )?;
+        writeln!(output, "{}fn [", current_padding())?;
+        change_indentation(scope::IndentationChange::More);
+        for param in &self.signature.params {
+            writeln!(output, "{}{:?},", current_padding(), param)?;
+        }
+        change_indentation(scope::IndentationChange::Less);
+        write!(output, "{}]", current_padding())?;
         self.body.check_and_emit(output, ctx, scope_stack)
     }
 }

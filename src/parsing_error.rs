@@ -1,7 +1,4 @@
-use crate::{
-    lexer::{FileContext, Token},
-    parser::LogosError,
-};
+use crate::lexer::{FileContext, Token};
 
 pub enum ParsingError {
     AbruptEof(&'static str, FileContext, Vec<Token<'static>>),
@@ -11,7 +8,7 @@ pub enum ParsingError {
         Token<'static>,
         Vec<Token<'static>>,
     ),
-    TokenError(LogosError),
+    TokenError(String),
 }
 
 impl std::fmt::Debug for ParsingError {
@@ -22,7 +19,7 @@ impl std::fmt::Debug for ParsingError {
                     f,
                     "AbruptEof(expected one of {:?} at {file}@{line}): {msg}",
                     expected,
-                    file = context.filename,
+                    file = context.file,
                     line = context.line
                 )
             }
@@ -32,7 +29,7 @@ impl std::fmt::Debug for ParsingError {
                     "UnexpectedToken({:?}, expected one of <{:?}> at {file}@{line}): {msg}",
                     token,
                     expected,
-                    file = context.filename,
+                    file = context.file,
                     line = context.line
                 )
             }

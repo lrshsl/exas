@@ -2,7 +2,7 @@ use logos::{Logos, Skip};
 
 #[derive(Debug, Clone)]
 pub struct FileContext {
-    pub filename: String,
+    pub file: String,
     pub line: usize,
 }
 
@@ -45,7 +45,7 @@ mod tests {
             print x,
             ",
             FileContext {
-                filename: "test1".to_string(),
+                file: "test1".to_string(),
                 line: 1,
             },
         );
@@ -78,7 +78,7 @@ mod tests {
             a - < > *  / ,.? :,
             "#,
             FileContext {
-                filename: "test2".to_string(),
+                file: "test2".to_string(),
                 line: 1,
             },
         );
@@ -107,7 +107,7 @@ mod tests {
             let x -> y,
             "#,
             FileContext {
-                filename: "test3".to_string(),
+                file: "test3".to_string(),
                 line: 1,
             },
         );

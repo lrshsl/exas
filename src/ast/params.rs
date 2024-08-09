@@ -1,9 +1,19 @@
 use super::*;
 
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 pub struct Param {
     pub name: Option<&'static str>,
     pub pattern: MatchPattern,
+}
+
+impl std::fmt::Debug for Param {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        if let Some(name) = self.name {
+            write!(f, "Param<{:?}: {:?}>", name, self.pattern)
+        } else {
+            write!(f, "Param<{:?}>", self.pattern)
+        }
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -23,30 +33,24 @@ impl Parsable for ParamList {
                     parser.advance();
                     break;
                 }
-                Token::Ident => {
-                    params.push(Param {
-                        name: Some(parser.current_slice),
-                        pattern: MatchPattern::RawToken(RawToken::Ident(Ident(
-                            parser.current_slice,
-                        ))),
-                    });
-                    parser.advance();
-                }
-                Token::Int(val) => {
-                    params.push(Param {
-                        name: None,
-                        pattern: MatchPattern::RawToken(RawToken::Int(*val)),
-                    });
-                    parser.advance();
-                }
-                // TODO: Add strings etc, and type patterns!
-                _ => {
+                Token::Symbol("[") => todo!(),
+                Token::Symbol(",") => {
                     return Err(ParsingError::UnexpectedToken(
                         "params",
                         parser.lexer.extras.clone(),
                         token.clone(),
-                        vec![Token::Ident, Token::Int(0), Token::Symbol("{")],
+                        vec![],
                     ))
+                }
+                token => {
+                    params.push(Param {
+                        name: None,
+                        pattern: MatchPattern::RawToken(RawToken::from_token(
+                            token,
+                            parser.lexer.slice(),
+                        )),
+                    });
+                    parser.advance();
                 }
             }
         }

@@ -25,10 +25,10 @@ impl std::fmt::Debug for RawToken {
 }
 
 impl RawToken {
-    pub fn from_token(token: Token, slice: &'static str) -> Self {
+    pub fn from_token(token: &Token, slice: &'static str) -> Self {
         match token {
             Token::Ident => RawToken::Ident(Ident(slice)),
-            Token::Int(val) => RawToken::Int(val),
+            Token::Int(val) => RawToken::Int(*val),
             Token::String => RawToken::String(slice),
             _ => {
                 assert_eq!(slice.len(), 1);
@@ -50,7 +50,11 @@ impl Parsable for RawToken {
                 assert_eq!(symbol.len(), 1, "Symbol should be a single character");
                 Ok(RawToken::Symbol(symbol.chars().next().unwrap()))
             }
-            Some(Err(error)) => Err(ParsingError::TokenError(*error)),
+            Some(Err(())) => Err(ParsingError::TokenError(format!(
+                "Lexer error in {file}@{line}",
+                file = parser.lexer.extras.file,
+                line = parser.lexer.extras.line
+            ))),
             None => Err(ParsingError::AbruptEof(
                 "raw_token",
                 parser.lexer.extras.clone(),

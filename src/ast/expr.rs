@@ -9,9 +9,20 @@ pub enum Expr {
 
     Assign(Assign),
 
-    Ident(Ident),
     Int(i32),
     String(&'static str),
+}
+
+impl std::fmt::Debug for Expr {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Expr::FnDef(fn_def) => write!(f, "{:?}", fn_def),
+            Expr::FnCall(fn_call) => write!(f, "{:?}", fn_call),
+            Expr::Assign(assign) => write!(f, "{:?}", assign),
+            Expr::Int(int) => write!(f, "{:?}", int),
+            Expr::String(string) => write!(f, "{:?}", string),
+        }
+    }
 }
 
 impl AstNode for Expr {
@@ -19,7 +30,6 @@ impl AstNode for Expr {
         match self {
             Expr::FnDef(fn_def) => fn_def.build_context(ctx, current_scope),
             Expr::Assign(assign) => assign.build_context(ctx, current_scope),
-            Expr::Ident(ident) => ident.build_context(ctx, current_scope),
 
             Expr::Int(_) => {}
             Expr::String(_) => {}
@@ -35,53 +45,10 @@ impl AstNode for Expr {
     ) -> std::io::Result<()> {
         match self {
             Expr::FnDef(fn_def) => fn_def.check_and_emit(output, ctx, scope_stack),
-            Expr::Ident(ident) => {
-                // Check if in scope
-                if let Some(name_matches) = ctx.symbols.get(ident.0) {
-                    let scope_matches = name_matches.iter().filter(|symbol| {
-                        ctx.scope_stack
-                            .iter()
-                            .any(|scope_id| scope_id == &symbol.scope)
-                    });
-                    match scope_matches.count() {
-                        0 => panic!(
-                            "<{}> not defined in this scope (scope {})",
-                            ident.0,
-                            ctx.scope_stack.last().unwrap()
-                        ),
-                        1 => ident.check_and_emit(output, ctx, scope_stack),
-                        _ => panic!(
-                            "<{}> defined multiple times in this scope (scope {})",
-                            ident.0,
-                            ctx.scope_stack.last().unwrap()
-                        ),
-                    }
-                } else {
-                    panic!(
-                        "<{}> not defined in this scope (scope {})",
-                        ident.0,
-                        ctx.scope_stack.last().unwrap()
-                    );
-                }
-            }
-
             Expr::Assign(assign) => assign.check_and_emit(output, ctx, scope_stack),
             Expr::Int(int) => write!(output, "{}Int({})", current_padding(), int),
             Expr::String(string) => write!(output, "{}String({})", current_padding(), string),
             Expr::FnCall(fn_call) => fn_call.check_and_emit(output, ctx, scope_stack),
-        }
-    }
-}
-
-impl std::fmt::Debug for Expr {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Expr::FnDef(fn_def) => write!(f, "{:?}", fn_def),
-            Expr::FnCall(fn_call) => write!(f, "{:?}", fn_call),
-            Expr::Assign(assign) => write!(f, "{:?}", assign),
-            Expr::Ident(ident) => write!(f, "{:?}", ident),
-            Expr::Int(int) => write!(f, "{:?}", int),
-            Expr::String(string) => write!(f, "{:?}", string),
         }
     }
 }
@@ -91,7 +58,13 @@ impl Parsable for Expr {
     fn parse(parser: &mut Parser) -> Result<Expr, ParsingError> {
         let token = match parser.current_token.as_ref() {
             Some(Ok(token)) => token,
-            Some(Err(error)) => return Err(ParsingError::TokenError(*error)),
+            Some(Err(())) => {
+                return Err(ParsingError::TokenError(format!(
+                    "Lexer error in {file}@{line}",
+                    file = parser.lexer.extras.file,
+                    line = parser.lexer.extras.line
+                )))
+            }
             None => {
                 return Err(ParsingError::AbruptEof(
                     "expr",
@@ -123,7 +96,11 @@ impl Parsable for Expr {
                         name: ident,
                         args: ArgumentList::parse(parser)?,
                     })),
-                    Some(Err(error)) => Err(ParsingError::TokenError(error)),
+                    Some(Err(())) => Err(ParsingError::TokenError(format!(
+                        "Lexer error in {file}@{line}",
+                        file = parser.lexer.extras.file,
+                        line = parser.lexer.extras.line,
+                    ))),
                 }
             }
             Token::Int(val) => {

@@ -24,9 +24,13 @@ fn main() -> Result<(), ParsingError> {
 
 const TEST_INPUTS: [&str; 4] = [
     r##"
+        print = fn x {},
+        set = fn name = val {},
+        what = fn {},
+
         print x,
         set x = 10,
-        let x = 1,, p89,
+        print x = 1,, p89,
             8, "sreti", "hello", 90, a 90, 
             what ~,
             what ><<~-?>
@@ -60,18 +64,17 @@ fn parse_and_print(input: &'static str) -> Result<(), ParsingError> {
     let mut parser = Parser::new(Token::lexer_with_extras(
         input,
         FileContext {
-            filename: "test".to_string(),
+            file: "test".to_string(),
             line: 1,
         },
     ));
     let ast = parser.parse()?;
 
-    ast.print();
+    println!("{}", ast);
     println!();
 
     let mut program_ctx = ProgramContext {
         symbols: HashMap::new(),
-        scope_stack: Vec::new(),
     };
     ast.build_context(&mut program_ctx, 0);
 

@@ -5,8 +5,14 @@ use super::{AstNode, ProgramContext, ScopeId};
 #[derive(Debug, Clone)]
 pub struct Ident(pub &'static str);
 
+impl std::fmt::Display for Ident {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "Ident<{}>", self.0)
+    }
+}
+
 impl AstNode for Ident {
-    fn build_context(&self, ctx: &mut ProgramContext, current_scope: ScopeId) {}
+    fn build_context(&self, _ctx: &mut ProgramContext, _current_scope: ScopeId) {}
 
     fn check_and_emit<Output: std::io::Write>(
         &self,

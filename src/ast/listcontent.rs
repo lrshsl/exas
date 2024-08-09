@@ -1,16 +1,24 @@
-use std::fmt::Formatter;
-
 use scope::change_indentation;
 
 use super::*;
 
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 pub struct ListContent {
     pub elements: Vec<Expr>,
 }
 
+impl std::fmt::Debug for ListContent {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        writeln!(f, "ListContent {{")?;
+        for element in self.elements.iter() {
+            writeln!(f, "{:?},", element)?;
+        }
+        writeln!(f, "}}")
+    }
+}
+
 impl AstNode for ListContent {
-    fn build_context(&self, ctx: &mut ProgramContext, current_scope: ScopeId) {
+    fn build_context(&self, ctx: &mut ProgramContext, _: ScopeId) {
         let new_scope = next_scope();
 
         for element in self.elements.iter() {
@@ -25,7 +33,7 @@ impl AstNode for ListContent {
         scope_stack: &mut Vec<ScopeId>,
     ) -> std::io::Result<()> {
         // Start a new scope
-        writeln!(output, "{}{{", current_padding())?;
+        writeln!(output, "{{")?;
         scope_stack.push(next_scope());
         change_indentation(scope::IndentationChange::More);
 
@@ -45,7 +53,13 @@ impl Parsable for ListContent {
         loop {
             let token = match parser.current_token.as_ref() {
                 Some(Ok(token)) => token,
-                Some(Err(error)) => return Err(ParsingError::TokenError(*error)),
+                Some(Err(())) => {
+                    return Err(ParsingError::TokenError(format!(
+                        "Lexer error in {file}@{line}",
+                        file = parser.lexer.extras.file,
+                        line = parser.lexer.extras.line,
+                    )))
+                }
                 None => break,
             };
             match token {

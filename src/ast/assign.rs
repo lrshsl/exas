@@ -6,26 +6,24 @@ use std::rc::Rc;
 
 use super::{AstNode, Expr, ProgramContext, ScopeId, Symbol};
 
-#[derive(Clone, Debug)]
+#[derive(Clone)]
 pub struct Assign {
     pub name: &'static str,
     pub value: Rc<Expr>,
 }
 
+impl std::fmt::Debug for Assign {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "Assign({:?} =\n{:?})", self.name, self.value)
+    }
+}
+
 impl AstNode for Assign {
     fn build_context(&self, ctx: &mut ProgramContext, current_scope: ScopeId) {
-        let entry = ctx.symbols.entry(self.name).or_insert(Vec::new());
-
-        if entry.iter().any(|symbol| symbol.scope == current_scope) {
-            panic!(
-                "Assignment of <{}> shadows other variable in scope",
-                self.name
-            );
-        }
-        entry.push(Symbol {
+        ctx.symbols.entry(self.name).or_default().push(Symbol {
             scope: current_scope,
-            value: Expr::Assign(self.clone()),
-        });
+            value: Rc::clone(&self.value),
+        })
     }
 
     fn check_and_emit<Output: io::Write>(

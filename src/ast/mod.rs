@@ -1,12 +1,12 @@
 use std::io;
 
-pub(self) use crate::lexer::Token;
-pub(self) use crate::parsing_error::ParsingError;
+use crate::lexer::Token;
+use crate::parsing_error::ParsingError;
 
 mod scope;
 pub(crate) use scope::ProgramContext;
 use scope::ScopeId;
-pub(self) use scope::{current_padding, next_scope, Symbol};
+use scope::{current_padding, next_scope, Symbol};
 
 mod expr;
 pub use expr::Expr;
@@ -50,16 +50,13 @@ pub trait Parsable {
         Self: Sized;
 }
 
-#[derive(Debug)]
 pub struct Ast {
     pub stmts: ListContent,
 }
 
-impl Ast {
-    pub fn print(&self) {
-        for stmt in &self.stmts.elements {
-            println!("{:?}", stmt);
-        }
+impl std::fmt::Display for Ast {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        write!(f, "{:?}", self.stmts)
     }
 }
 
