@@ -42,14 +42,15 @@ impl AstNode for Expr {
         output: &mut Output,
         ctx: &ProgramContext,
         scope_stack: &mut Vec<ScopeId>,
-    ) -> std::io::Result<()> {
+    ) -> CheckResult<()> {
         match self {
-            Expr::FnDef(fn_def) => fn_def.check_and_emit(output, ctx, scope_stack),
-            Expr::Assign(assign) => assign.check_and_emit(output, ctx, scope_stack),
-            Expr::Int(int) => write!(output, "{}Int({})", current_padding(), int),
-            Expr::String(string) => write!(output, "{}String({})", current_padding(), string),
-            Expr::FnCall(fn_call) => fn_call.check_and_emit(output, ctx, scope_stack),
+            Expr::FnDef(fn_def) => fn_def.check_and_emit(output, ctx, scope_stack)?,
+            Expr::Assign(assign) => assign.check_and_emit(output, ctx, scope_stack)?,
+            Expr::Int(int) => write!(output, "{}Int({})", current_padding(), int)?,
+            Expr::String(string) => write!(output, "{}String({})", current_padding(), string)?,
+            Expr::FnCall(fn_call) => fn_call.check_and_emit(output, ctx, scope_stack)?,
         }
+        Ok(())
     }
 }
 

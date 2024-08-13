@@ -31,7 +31,7 @@ impl AstNode for ListContent {
         output: &mut Output,
         ctx: &ProgramContext,
         scope_stack: &mut Vec<ScopeId>,
-    ) -> std::io::Result<()> {
+    ) -> CheckResult<()> {
         // Start a new scope
         writeln!(output, "{{")?;
         scope_stack.push(next_scope());
@@ -43,7 +43,8 @@ impl AstNode for ListContent {
 
         change_indentation(scope::IndentationChange::Less);
         scope_stack.pop();
-        writeln!(output, "{}}}", current_padding())
+        writeln!(output, "{}}}", current_padding())?;
+        Ok(())
     }
 }
 

@@ -1,6 +1,6 @@
 use crate::ast::current_padding;
 
-use super::{AstNode, ProgramContext, ScopeId};
+use super::{AstNode, CheckResult, ProgramContext, ScopeId};
 
 #[derive(Debug, Clone)]
 pub struct Ident(pub &'static str);
@@ -19,7 +19,7 @@ impl AstNode for Ident {
         output: &mut Output,
         ctx: &ProgramContext,
         scope_stack: &mut Vec<ScopeId>,
-    ) -> std::io::Result<()> {
+    ) -> CheckResult<()> {
         if let Some(name_matches) = ctx.symbols.get(self.0) {
             let mut scope_matches = name_matches
                 .iter()

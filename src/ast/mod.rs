@@ -1,6 +1,6 @@
 use std::io;
 
-use crate::lexer::Token;
+use crate::lexer::{FileContext, Token};
 use crate::parsing_error::ParsingError;
 
 mod scope;
@@ -34,6 +34,37 @@ pub use listcontent::ListContent;
 
 use crate::parser::Parser;
 
+pub type CheckResult<T> = Result<T, CheckError>;
+
+pub enum CheckError {
+    CompileError(FileContext, String),
+    EmitError(io::Error),
+}
+
+impl std::fmt::Display for CheckError {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        match self {
+            CheckError::CompileError(context, msg) => write!(
+                f,
+                "[Compile Error]<{file} {line}> {msg}",
+                file = context.file,
+                line = context.line
+            ),
+            CheckError::EmitError(error) => write!(f, "{}", error),
+        }
+    }
+}
+
+impl From<io::Error> for CheckError {
+    fn from(error: io::Error) -> Self {
+        CheckError::EmitError(error)
+    }
+}
+
+pub fn compile_error<T>(context: FileContext, msg: String) -> CheckResult<T> {
+    Err(CheckError::CompileError(context, msg))
+}
+
 pub trait AstNode {
     fn build_context(&self, ctx: &mut ProgramContext, current_scope: ScopeId);
     fn check_and_emit<Output: io::Write>(
@@ -41,7 +72,7 @@ pub trait AstNode {
         output: &mut Output,
         ctx: &ProgramContext,
         scope_stack: &mut Vec<ScopeId>,
-    ) -> io::Result<()>;
+    ) -> CheckResult<()>;
 }
 
 pub trait Parsable {
@@ -70,7 +101,7 @@ impl AstNode for Ast {
         output: &mut Output,
         ctx: &ProgramContext,
         scope_stack: &mut Vec<ScopeId>,
-    ) -> std::io::Result<()> {
+    ) -> CheckResult<()> {
         self.stmts.check_and_emit(output, ctx, scope_stack)
     }
 }

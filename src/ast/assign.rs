@@ -31,7 +31,7 @@ impl AstNode for Assign {
         output: &mut Output,
         ctx: &ProgramContext,
         scope_stack: &mut Vec<ScopeId>,
-    ) -> io::Result<()> {
+    ) -> CheckResult<()> {
         writeln!(output, "{}let {} = ", current_padding(), self.name)?;
         change_indentation(scope::IndentationChange::More);
         self.value.check_and_emit(output, ctx, scope_stack)?;

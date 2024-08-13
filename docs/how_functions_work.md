@@ -40,7 +40,7 @@ specific, unexpanded tokens, but can be made more general by using powerful
 Some examples:
 
 ```exas
-echo = fn (first [first_0: Str]) {
+echo = fn first [first_0: Str] {
     println "hi" first,
 },
 echo = fn (second [second_0: Str] [second_1: Str]) {

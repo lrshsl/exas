@@ -35,6 +35,7 @@ pub(super) type ScopeId = usize;
 
 pub struct ProgramContext {
     pub symbols: SymbolTable,
+    pub file_context: FileContext,
 }
 
 pub type SymbolTable = HashMap<&'static str, Vec<Symbol>>;

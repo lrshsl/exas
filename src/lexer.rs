@@ -3,6 +3,7 @@ use logos::{Logos, Skip};
 #[derive(Debug, Clone)]
 pub struct FileContext {
     pub file: String,
+    pub source: &'static str,
     pub line: usize,
 }
 
@@ -38,14 +39,16 @@ mod tests {
 
     #[test]
     fn set_print() {
-        let mut lex = Token::lexer_with_extras(
-            "
+        let source = r##"
             set x = 3,
             set y = 4,
             print x,
-            ",
+            "##;
+        let mut lex = Token::lexer_with_extras(
+            source,
             FileContext {
-                file: "test1".to_string(),
+                file: "test_set_print".to_string(),
+                source,
                 line: 1,
             },
         );
@@ -73,12 +76,14 @@ mod tests {
 
     #[test]
     fn symbols() {
-        let mut lex = Token::lexer_with_extras(
-            r#"
+        let source = r##"
             a - < > *  / ,.? :,
-            "#,
+            "##;
+        let mut lex = Token::lexer_with_extras(
+            source,
             FileContext {
-                file: "test2".to_string(),
+                file: "test_symbols".to_string(),
+                source,
                 line: 1,
             },
         );
@@ -98,16 +103,18 @@ mod tests {
 
     #[test]
     fn all_symbols() {
-        let mut lex = Token::lexer_with_extras(
-            r#"
+        let source = r##"
             echo "hello",
             is .. x > y || .. < y ?
                 : "hello",
 
             let x -> y,
-            "#,
+            "##;
+        let mut lex = Token::lexer_with_extras(
+            source,
             FileContext {
                 file: "test3".to_string(),
+                source,
                 line: 1,
             },
         );

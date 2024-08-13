@@ -25,24 +25,39 @@ impl AstNode for FnCall {
         output: &mut Output,
         ctx: &ProgramContext,
         scope_stack: &mut Vec<ScopeId>,
-    ) -> std::io::Result<()> {
+    ) -> CheckResult<()> {
         let _function_entry = match ctx.symbols.get(self.name) {
-            None => panic!("Undefined function: {}", self.name),
+            None => {
+                return compile_error(
+                    ctx.file_context.clone(),
+                    format!("Undefined function: {}", self.name).to_string(),
+                )
+            }
             Some(global_matches) => match global_matches
                 .iter()
                 .filter(|f| scope_stack.contains(&f.scope))
                 .collect::<Vec<_>>()[..]
             {
-                [] => panic!(
-                    "Function not defined in this scope: {}, scope: {}",
-                    self.name,
-                    scope_stack.last().unwrap()
-                ),
+                [] => {
+                    return compile_error(
+                        ctx.file_context.clone(),
+                        format!(
+                            "Function not defined in this scope: {}, scope: {}",
+                            self.name,
+                            scope_stack.last().unwrap()
+                        ),
+                    )
+                }
                 [one_match] => one_match,
-                [..] => panic!(
-                    "Function defined multiple times in this scope: {}",
-                    self.name
-                ),
+                [..] => {
+                    return compile_error(
+                        ctx.file_context.clone(),
+                        format!(
+                            "Function defined multiple times in this scope: {}",
+                            self.name
+                        ),
+                    )
+                }
             },
         };
         // Todo: check signature
@@ -52,7 +67,8 @@ impl AstNode for FnCall {
             current_padding(),
             self.name,
             self.args
-        )
+        )?;
+        Ok(())
     }
 }
 

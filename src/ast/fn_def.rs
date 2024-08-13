@@ -36,7 +36,7 @@ impl AstNode for FnDef {
         output: &mut Output,
         ctx: &ProgramContext,
         scope_stack: &mut Vec<ScopeId>,
-    ) -> std::io::Result<()> {
+    ) -> CheckResult<()> {
         writeln!(output, "{}fn [", current_padding())?;
         change_indentation(scope::IndentationChange::More);
         for param in &self.signature.params {

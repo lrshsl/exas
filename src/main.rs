@@ -15,15 +15,17 @@ mod parser;
 mod parsing_error;
 
 fn main() -> Result<(), ParsingError> {
-    for input in TEST_INPUTS {
-        parse_and_print(input)?;
+    for (name, input) in TEST_INPUTS {
+        parse_and_print(name, input)?;
     }
 
     Ok(())
 }
 
-const TEST_INPUTS: [&str; 4] = [
-    r##"
+const TEST_INPUTS: [(&str, &str); 4] = [
+    (
+        "function_calls.exas",
+        r##"
         print = fn x {},
         set = fn name = val {},
         what = fn {},
@@ -35,11 +37,17 @@ const TEST_INPUTS: [&str; 4] = [
             what ~,
             what ><<~-?>
     "##,
-    r##"
+    ),
+    (
+        "small_test.exas",
+        r##"
         set x = 10,
         print x,
     "##,
-    r##"
+    ),
+    (
+        "small_test.exas",
+        r##"
         set file = openfile "hello.txt",
         closefile = fn filename {
             print filename "closed",
@@ -47,27 +55,32 @@ const TEST_INPUTS: [&str; 4] = [
         },
         print x
     "##,
-    r##"
+    ),
+    (
+        "subexpressions.exas",
+        r##"
+        gethandle = fn filename {},
         closefile = fn filename {
             filehandle = (gethandle filename),
         },
         print (closefile "hello.exas")
     "##,
+    ),
 ];
 
-fn parse_and_print(input: &'static str) -> Result<(), ParsingError> {
+fn parse_and_print(name: &'static str, input: &'static str) -> Result<(), ParsingError> {
     println!("========== Source ===========");
     println!("{}", input);
     println!();
 
+    let file_context = FileContext {
+        file: name.to_string(),
+        source: input,
+        line: 1,
+    };
+
     println!("==========  AST   ===========");
-    let mut parser = Parser::new(Token::lexer_with_extras(
-        input,
-        FileContext {
-            file: "test".to_string(),
-            line: 1,
-        },
-    ));
+    let mut parser = Parser::new(Token::lexer_with_extras(input, file_context.clone()));
     let ast = parser.parse()?;
 
     println!("{}", ast);
@@ -75,13 +88,18 @@ fn parse_and_print(input: &'static str) -> Result<(), ParsingError> {
 
     let mut program_ctx = ProgramContext {
         symbols: HashMap::new(),
+        file_context: FileContext {
+            line: 1,
+            ..file_context
+        },
     };
     ast.build_context(&mut program_ctx, 0);
 
     println!("==========  Emit  ===========");
-    let mut output = std::io::stdout();
-    ast.check_and_emit(&mut output, &program_ctx, &mut vec![])
-        .unwrap();
+    let mut output = std::io::stdout().lock();
+    if let Err(e) = ast.check_and_emit(&mut output, &program_ctx, &mut vec![]) {
+        println!("{}", e);
+    }
 
     println!("\n");
     Ok(())
