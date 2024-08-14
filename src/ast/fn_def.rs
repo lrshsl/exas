@@ -27,8 +27,8 @@ impl std::fmt::Debug for FnDef {
 }
 
 impl AstNode for FnDef {
-    fn build_context(&self, ctx: &mut ProgramContext, current_scope: usize) {
-        self.body.build_context(ctx, current_scope);
+    fn build_context(&self, ctx: &mut ProgramContext, scope_stack: &mut Vec<ScopeId>) {
+        self.body.build_context(ctx, scope_stack);
     }
 
     fn check_and_emit<Output: std::io::Write>(

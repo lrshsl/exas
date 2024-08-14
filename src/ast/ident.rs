@@ -12,7 +12,7 @@ impl std::fmt::Display for Ident {
 }
 
 impl AstNode for Ident {
-    fn build_context(&self, _ctx: &mut ProgramContext, _current_scope: ScopeId) {}
+    fn build_context(&self, _ctx: &mut ProgramContext, _scope_stack: &mut Vec<ScopeId>) {}
 
     fn check_and_emit<Output: std::io::Write>(
         &self,

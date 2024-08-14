@@ -19,9 +19,9 @@ impl std::fmt::Debug for Assign {
 }
 
 impl AstNode for Assign {
-    fn build_context(&self, ctx: &mut ProgramContext, current_scope: ScopeId) {
+    fn build_context(&self, ctx: &mut ProgramContext, scope_stack: &mut Vec<ScopeId>) {
         ctx.symbols.entry(self.name).or_default().push(Symbol {
-            scope: current_scope,
+            scope: *scope_stack.last().unwrap(),
             value: Rc::clone(&self.value),
         })
     }

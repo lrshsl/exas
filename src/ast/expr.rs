@@ -26,10 +26,10 @@ impl std::fmt::Debug for Expr {
 }
 
 impl AstNode for Expr {
-    fn build_context(&self, ctx: &mut ProgramContext, current_scope: ScopeId) {
+    fn build_context(&self, ctx: &mut ProgramContext, scope_stack: &mut Vec<ScopeId>) {
         match self {
-            Expr::FnDef(fn_def) => fn_def.build_context(ctx, current_scope),
-            Expr::Assign(assign) => assign.build_context(ctx, current_scope),
+            Expr::FnDef(fn_def) => fn_def.build_context(ctx, scope_stack),
+            Expr::Assign(assign) => assign.build_context(ctx, scope_stack),
 
             Expr::Int(_) => {}
             Expr::String(_) => {}

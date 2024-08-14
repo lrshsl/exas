@@ -5,8 +5,8 @@ use crate::parsing_error::ParsingError;
 
 mod scope;
 pub(crate) use scope::ProgramContext;
-use scope::ScopeId;
 use scope::{current_padding, next_scope, Symbol};
+use scope::{reset_scope_and_indent, ScopeId};
 
 mod expr;
 pub use expr::Expr;
@@ -66,7 +66,7 @@ pub fn compile_error<T>(context: FileContext, msg: String) -> CheckResult<T> {
 }
 
 pub trait AstNode {
-    fn build_context(&self, ctx: &mut ProgramContext, current_scope: ScopeId);
+    fn build_context(&self, ctx: &mut ProgramContext, scope_stack: &mut Vec<ScopeId>);
     fn check_and_emit<Output: io::Write>(
         &self,
         output: &mut Output,
@@ -91,17 +91,19 @@ impl std::fmt::Display for Ast {
     }
 }
 
-impl AstNode for Ast {
-    fn build_context(&self, ctx: &mut ProgramContext, _: ScopeId) {
-        self.stmts.build_context(ctx, 0);
+impl Ast {
+    pub fn build_context(&self, ctx: &mut ProgramContext) {
+        reset_scope_and_indent();
+        self.stmts.build_context(ctx, &mut vec![next_scope()]);
     }
 
-    fn check_and_emit<Output: std::io::Write>(
+    pub fn check_and_emit<Output: std::io::Write>(
         &self,
         output: &mut Output,
         ctx: &ProgramContext,
-        scope_stack: &mut Vec<ScopeId>,
     ) -> CheckResult<()> {
-        self.stmts.check_and_emit(output, ctx, scope_stack)
+        reset_scope_and_indent();
+        self.stmts
+            .check_and_emit(output, ctx, &mut vec![next_scope()])
     }
 }

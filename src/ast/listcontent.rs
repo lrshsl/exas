@@ -18,11 +18,11 @@ impl std::fmt::Debug for ListContent {
 }
 
 impl AstNode for ListContent {
-    fn build_context(&self, ctx: &mut ProgramContext, _: ScopeId) {
-        let new_scope = next_scope();
+    fn build_context(&self, ctx: &mut ProgramContext, scope_stack: &mut Vec<ScopeId>) {
+        scope_stack.push(next_scope());
 
         for element in self.elements.iter() {
-            element.build_context(ctx, new_scope);
+            element.build_context(ctx, scope_stack);
         }
     }
 
@@ -33,7 +33,7 @@ impl AstNode for ListContent {
         scope_stack: &mut Vec<ScopeId>,
     ) -> CheckResult<()> {
         // Start a new scope
-        writeln!(output, "{{")?;
+        writeln!(output, "{}{{", current_padding())?;
         scope_stack.push(next_scope());
         change_indentation(scope::IndentationChange::More);
 

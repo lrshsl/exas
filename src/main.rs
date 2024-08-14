@@ -29,6 +29,8 @@ const TEST_INPUTS: [(&str, &str); 4] = [
         print = fn x {},
         set = fn name = val {},
         what = fn {},
+        p89 = fn {},
+        a = fn {},
 
         print x,
         set x = 10,
@@ -59,6 +61,7 @@ const TEST_INPUTS: [(&str, &str); 4] = [
     (
         "subexpressions.exas",
         r##"
+        print = fn {},
         gethandle = fn filename {},
         closefile = fn filename {
             filehandle = (gethandle filename),
@@ -93,12 +96,18 @@ fn parse_and_print(name: &'static str, input: &'static str) -> Result<(), Parsin
             ..file_context
         },
     };
-    ast.build_context(&mut program_ctx, 0);
+    ast.build_context(&mut program_ctx);
+
+    println!("==========  Program Context  ===========");
+
+    println!("{:#?}\n\n", program_ctx);
 
     println!("==========  Emit  ===========");
     let mut output = std::io::stdout().lock();
-    if let Err(e) = ast.check_and_emit(&mut output, &program_ctx, &mut vec![]) {
-        println!("{}", e);
+    if let Err(e) = ast.check_and_emit(&mut output, &program_ctx) {
+        println!("\n{}", e);
+    } else {
+        println!("\nNo errors :)");
     }
 
     println!("\n");
