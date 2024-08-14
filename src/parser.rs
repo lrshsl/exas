@@ -23,7 +23,7 @@ impl Parser {
     pub fn parse(&mut self) -> Result<Ast, ParsingError> {
         self.advance();
         Ok(Ast {
-            stmts: ListContent::parse(self)?,
+            program: ListContent::parse(self)?,
         })
     }
 

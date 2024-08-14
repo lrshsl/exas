@@ -16,9 +16,9 @@ impl std::fmt::Debug for RawToken {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             RawToken::Ident(ident) => write!(f, "{:?}", ident),
-            RawToken::Int(int) => write!(f, "{:?}", int),
-            RawToken::String(string) => write!(f, "{:?}", string),
-            RawToken::Symbol(symbol) => write!(f, "{:?}", symbol),
+            RawToken::Int(int) => write!(f, "Int({:?})", int),
+            RawToken::String(string) => write!(f, "String({:?})", string),
+            RawToken::Symbol(symbol) => write!(f, "Symbol({:?})", symbol),
             RawToken::Expr(expr) => write!(f, "{:?}", expr),
         }
     }

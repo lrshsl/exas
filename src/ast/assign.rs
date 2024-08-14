@@ -6,16 +6,10 @@ use std::rc::Rc;
 
 use super::{AstNode, Expr, ProgramContext, ScopeId, Symbol};
 
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct Assign {
     pub name: &'static str,
     pub value: Rc<Expr>,
-}
-
-impl std::fmt::Debug for Assign {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "Assign({:?} =\n{:?})", self.name, self.value)
-    }
 }
 
 impl AstNode for Assign {

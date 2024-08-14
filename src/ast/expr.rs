@@ -16,11 +16,11 @@ pub enum Expr {
 impl std::fmt::Debug for Expr {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Expr::FnDef(fn_def) => write!(f, "{:?}", fn_def),
-            Expr::FnCall(fn_call) => write!(f, "{:?}", fn_call),
-            Expr::Assign(assign) => write!(f, "{:?}", assign),
-            Expr::Int(int) => write!(f, "{:?}", int),
-            Expr::String(string) => write!(f, "{:?}", string),
+            Expr::FnDef(fn_def) => fn_def.fmt(f),
+            Expr::FnCall(fn_call) => fn_call.fmt(f),
+            Expr::Assign(assign) => assign.fmt(f),
+            Expr::Int(int) => write!(f, "Int({})", int),
+            Expr::String(string) => write!(f, "String({})", string),
         }
     }
 }

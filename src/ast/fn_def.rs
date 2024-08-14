@@ -4,26 +4,15 @@ use crate::{ast::current_padding, parser::Parser};
 
 use super::*;
 
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct FnSignature {
     pub params: Vec<Param>,
 }
 
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct FnDef {
     pub signature: FnSignature,
     pub body: ListContent,
-}
-
-impl std::fmt::Debug for FnDef {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(
-            f,
-            "FnDef (Params: {params:?} {body:?})",
-            params = self.signature.params,
-            body = self.body
-        )
-    }
 }
 
 impl AstNode for FnDef {

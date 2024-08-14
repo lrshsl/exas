@@ -9,11 +9,7 @@ pub struct ListContent {
 
 impl std::fmt::Debug for ListContent {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        writeln!(f, "ListContent {{")?;
-        for element in self.elements.iter() {
-            writeln!(f, "{:?},", element)?;
-        }
-        writeln!(f, "}}")
+        self.elements.fmt(f)
     }
 }
 

@@ -1,20 +1,9 @@
 use super::*;
 
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct FnCall {
     pub name: &'static str,
     pub args: Vec<RawToken>,
-}
-
-impl std::fmt::Debug for FnCall {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        write!(
-            f,
-            "FnCall ({name}({args:?})",
-            name = self.name,
-            args = self.args
-        )
-    }
 }
 
 impl AstNode for FnCall {

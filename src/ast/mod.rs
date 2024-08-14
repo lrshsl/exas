@@ -81,20 +81,15 @@ pub trait Parsable {
         Self: Sized;
 }
 
+#[derive(Debug)]
 pub struct Ast {
-    pub stmts: ListContent,
-}
-
-impl std::fmt::Display for Ast {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        write!(f, "{:?}", self.stmts)
-    }
+    pub program: ListContent,
 }
 
 impl Ast {
     pub fn build_context(&self, ctx: &mut ProgramContext) {
         reset_scope_and_indent();
-        self.stmts.build_context(ctx, &mut vec![next_scope()]);
+        self.program.build_context(ctx, &mut vec![next_scope()]);
     }
 
     pub fn check_and_emit<Output: std::io::Write>(
@@ -103,7 +98,7 @@ impl Ast {
         ctx: &ProgramContext,
     ) -> CheckResult<()> {
         reset_scope_and_indent();
-        self.stmts
+        self.program
             .check_and_emit(output, ctx, &mut vec![next_scope()])
     }
 }

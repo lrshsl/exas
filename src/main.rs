@@ -15,9 +15,10 @@ mod parser;
 mod parsing_error;
 
 fn main() -> Result<(), ParsingError> {
-    for (name, input) in TEST_INPUTS {
-        parse_and_print(name, input)?;
-    }
+    // let filename = std::env::args().nth(1).expect("no file provided");
+    // let input = std::fs::read_to_string(&filename).expect("failed to read file");
+    let (name, input) = TEST_INPUTS[0];
+    parse_and_print(&name, &input)?;
 
     Ok(())
 }
@@ -73,22 +74,20 @@ const TEST_INPUTS: [(&str, &str); 4] = [
 
 fn parse_and_print(name: &'static str, input: &'static str) -> Result<(), ParsingError> {
     println!("========== Source ===========");
-    println!("{}", input);
-    println!();
+    println!("<<<{}>>>", input);
 
+    println!("\n\n==========  AST   ===========\n");
     let file_context = FileContext {
         file: name.to_string(),
         source: input,
         line: 1,
     };
-
-    println!("==========  AST   ===========");
     let mut parser = Parser::new(Token::lexer_with_extras(input, file_context.clone()));
     let ast = parser.parse()?;
 
-    println!("{}", ast);
-    println!();
+    println!("{:#?}", ast);
 
+    println!("\n\n==========  Program Context  ===========\n");
     let mut program_ctx = ProgramContext {
         symbols: HashMap::new(),
         file_context: FileContext {
@@ -97,14 +96,14 @@ fn parse_and_print(name: &'static str, input: &'static str) -> Result<(), Parsin
         },
     };
     ast.build_context(&mut program_ctx);
+    println!("{:#?}", program_ctx);
 
-    println!("==========  Program Context  ===========");
+    println!("\n\n==========  Emit  ===========");
+    let mut output_file = std::io::stdout().lock();
+    let result = ast.check_and_emit(&mut output_file, &program_ctx);
 
-    println!("{:#?}\n\n", program_ctx);
-
-    println!("==========  Emit  ===========");
-    let mut output = std::io::stdout().lock();
-    if let Err(e) = ast.check_and_emit(&mut output, &program_ctx) {
+    println!("\n\n==========  Output  ===========");
+    if let Err(e) = result {
         println!("\n{}", e);
     } else {
         println!("\nNo errors :)");
