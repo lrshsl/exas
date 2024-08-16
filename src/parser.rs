@@ -2,17 +2,17 @@ use logos::Logos;
 
 use crate::{ast::*, lexer::Token, parsing_error::ParsingError};
 
-pub type LogosError = <Token<'static> as Logos<'static>>::Error;
-pub type LogosLexer = logos::Lexer<'static, Token<'static>>;
+pub type LogosError<'source> = <Token<'source> as Logos<'source>>::Error;
+pub type LogosLexer<'source> = logos::Lexer<'source, Token<'source>>;
 
-pub struct Parser {
-    pub lexer: LogosLexer,
-    pub current_token: Option<Result<Token<'static>, LogosError>>,
-    pub current_slice: &'static str,
+pub struct Parser<'source> {
+    pub lexer: LogosLexer<'source>,
+    pub current_token: Option<Result<Token<'source>, LogosError<'source>>>,
+    pub current_slice: &'source str,
 }
 
-impl Parser {
-    pub fn new(lexer: LogosLexer) -> Self {
+impl<'source> Parser<'source> {
+    pub fn new(lexer: LogosLexer<'source>) -> Self {
         Self {
             lexer,
             current_token: None,
@@ -20,7 +20,7 @@ impl Parser {
         }
     }
 
-    pub fn parse(&mut self) -> Result<Ast, ParsingError> {
+    pub fn parse(&mut self) -> Result<Ast<'source>, ParsingError<'source>> {
         self.advance();
         Ok(Ast {
             program: ListContent::parse(self)?,

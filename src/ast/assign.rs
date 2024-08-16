@@ -7,13 +7,13 @@ use std::rc::Rc;
 use super::{AstNode, Expr, ProgramContext, ScopeId, Symbol};
 
 #[derive(Debug, Clone)]
-pub struct Assign {
-    pub name: &'static str,
-    pub value: Rc<Expr>,
+pub struct Assign<'source> {
+    pub name: &'source str,
+    pub value: Rc<Expr<'source>>,
 }
 
-impl AstNode for Assign {
-    fn build_context(&self, ctx: &mut ProgramContext, scope_stack: &mut Vec<ScopeId>) {
+impl<'source> AstNode<'source> for Assign<'source> {
+    fn build_context(&self, ctx: &mut ProgramContext<'source>, scope_stack: &mut Vec<ScopeId>) {
         ctx.symbols.entry(self.name).or_default().push(Symbol {
             scope: *scope_stack.last().unwrap(),
             value: Rc::clone(&self.value),
@@ -35,7 +35,10 @@ impl AstNode for Assign {
 }
 
 /// Should be called when on the next token after '='
-pub fn parse_assign(parser: &mut Parser, name: &'static str) -> Result<Expr, ParsingError> {
+pub fn parse_assign<'source>(
+    parser: &mut Parser<'source>,
+    name: &'source str,
+) -> Result<Expr<'source>, ParsingError<'source>> {
     Ok(Expr::Assign(Assign {
         name,
         value: Expr::parse(parser)?.into(),

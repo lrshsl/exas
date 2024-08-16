@@ -3,16 +3,16 @@ use crate::lexer::Token;
 use super::*;
 
 #[derive(Clone)]
-pub enum RawToken {
-    Ident(Ident),
+pub enum RawToken<'source> {
+    Ident(Ident<'source>),
     Int(i32),
-    String(&'static str),
+    String(&'source str),
     Symbol(char),
 
-    Expr(Expr),
+    Expr(Expr<'source>),
 }
 
-impl std::fmt::Debug for RawToken {
+impl std::fmt::Debug for RawToken<'_> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             RawToken::Ident(ident) => write!(f, "{:?}", ident),
@@ -24,8 +24,8 @@ impl std::fmt::Debug for RawToken {
     }
 }
 
-impl RawToken {
-    pub fn from_token(token: &Token, slice: &'static str) -> Self {
+impl<'source> RawToken<'source> {
+    pub fn from_token(token: &Token, slice: &'source str) -> Self {
         match token {
             Token::Ident => RawToken::Ident(Ident(slice)),
             Token::Int(val) => RawToken::Int(*val),
@@ -38,8 +38,8 @@ impl RawToken {
     }
 }
 
-impl Parsable for RawToken {
-    fn parse(parser: &mut Parser) -> Result<RawToken, ParsingError> {
+impl<'source> Parsable<'source> for RawToken<'source> {
+    fn parse(parser: &mut Parser<'source>) -> Result<RawToken<'source>, ParsingError<'source>> {
         match parser.current_token.as_ref() {
             Some(Ok(Token::String)) => Ok(RawToken::String(parser.current_slice)),
             Some(Ok(Token::Int(val))) => Ok(RawToken::Int(*val)),
@@ -52,7 +52,7 @@ impl Parsable for RawToken {
             }
             Some(Err(())) => Err(ParsingError::TokenError(format!(
                 "Lexer error in {file}@{line}",
-                file = parser.lexer.extras.file,
+                file = parser.lexer.extras.filename,
                 line = parser.lexer.extras.line
             ))),
             None => Err(ParsingError::AbruptEof(

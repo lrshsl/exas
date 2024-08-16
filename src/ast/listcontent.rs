@@ -3,18 +3,18 @@ use scope::change_indentation;
 use super::*;
 
 #[derive(Clone)]
-pub struct ListContent {
-    pub elements: Vec<Expr>,
+pub struct ListContent<'source> {
+    pub elements: Vec<Expr<'source>>,
 }
 
-impl std::fmt::Debug for ListContent {
+impl std::fmt::Debug for ListContent<'_> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         self.elements.fmt(f)
     }
 }
 
-impl AstNode for ListContent {
-    fn build_context(&self, ctx: &mut ProgramContext, scope_stack: &mut Vec<ScopeId>) {
+impl<'source> AstNode<'source> for ListContent<'source> {
+    fn build_context(&self, ctx: &mut ProgramContext<'source>, scope_stack: &mut Vec<ScopeId>) {
         scope_stack.push(next_scope());
 
         for element in self.elements.iter() {
@@ -25,7 +25,7 @@ impl AstNode for ListContent {
     fn check_and_emit<Output: std::io::Write>(
         &self,
         output: &mut Output,
-        ctx: &ProgramContext,
+        ctx: &ProgramContext<'source>,
         scope_stack: &mut Vec<ScopeId>,
     ) -> CheckResult<()> {
         // Start a new scope
@@ -44,8 +44,8 @@ impl AstNode for ListContent {
     }
 }
 
-impl Parsable for ListContent {
-    fn parse(parser: &mut Parser) -> Result<ListContent, ParsingError> {
+impl<'source> Parsable<'source> for ListContent<'source> {
+    fn parse(parser: &mut Parser<'source>) -> Result<ListContent<'source>, ParsingError<'source>> {
         let mut elements = vec![];
         loop {
             let token = match parser.current_token.as_ref() {
@@ -53,7 +53,7 @@ impl Parsable for ListContent {
                 Some(Err(())) => {
                     return Err(ParsingError::TokenError(format!(
                         "Lexer error in {file}@{line}",
-                        file = parser.lexer.extras.file,
+                        file = parser.lexer.extras.filename,
                         line = parser.lexer.extras.line,
                     )))
                 }

@@ -1,0 +1,13 @@
+
+  print = fn x {},
+  set = fn name = val {},
+  what = fn {},
+  p89 = fn {},
+  a = fn {},
+
+  print x,
+  set x = 10,
+  print x = 1,, p89,
+		8, "sreti", "hello", 90, a 90, 
+			what ~,
+		what ><<~-?>

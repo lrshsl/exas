@@ -1,18 +1,18 @@
 use super::*;
 
 #[derive(Debug, Clone)]
-pub struct FnCall {
-    pub name: &'static str,
-    pub args: Vec<RawToken>,
+pub struct FnCall<'source> {
+    pub name: &'source str,
+    pub args: Vec<RawToken<'source>>,
 }
 
-impl AstNode for FnCall {
+impl AstNode<'_> for FnCall<'_> {
     fn build_context(&self, _ctx: &mut ProgramContext, _scope_stack: &mut Vec<ScopeId>) {}
 
     fn check_and_emit<Output: std::io::Write>(
         &self,
         output: &mut Output,
-        ctx: &ProgramContext,
+        ctx: &ProgramContext<'_>,
         scope_stack: &mut Vec<ScopeId>,
     ) -> CheckResult<()> {
         let _function_entry = match ctx.symbols.get(self.name) {
@@ -61,10 +61,10 @@ impl AstNode for FnCall {
     }
 }
 
-pub type ArgumentList = Vec<RawToken>;
+pub type ArgumentList<'source> = Vec<RawToken<'source>>;
 
-impl Parsable for ArgumentList {
-    fn parse(parser: &mut Parser) -> Result<ArgumentList, ParsingError> {
+impl<'source> Parsable<'source> for ArgumentList<'source> {
+    fn parse(parser: &mut Parser<'source>) -> Result<ArgumentList<'source>, ParsingError<'source>> {
         let mut args = vec![];
         while let Some(Ok(token)) = parser.current_token.as_ref() {
             match token {

@@ -1,14 +1,14 @@
 use logos::{Logos, Skip};
 
 #[derive(Debug, Clone)]
-pub struct FileContext {
-    pub file: String,
-    pub source: &'static str,
+pub struct FileContext<'source> {
+    pub filename: String,
+    pub source: &'source str,
     pub line: usize,
 }
 
 #[derive(Logos, Debug, PartialEq, Clone)]
-#[logos(extras = FileContext)]
+#[logos(extras = FileContext<'s>)]
 #[logos(skip r"[ \t\r\f]+")] // Ignore whitespace
 pub enum Token<'source> {
     #[regex(r"[[:alpha:]][[:alpha:][:digit:]]*")]
@@ -47,7 +47,7 @@ mod tests {
         let mut lex = Token::lexer_with_extras(
             source,
             FileContext {
-                file: "test_set_print".to_string(),
+                filename: "test_set_print".to_string(),
                 source,
                 line: 1,
             },
@@ -82,7 +82,7 @@ mod tests {
         let mut lex = Token::lexer_with_extras(
             source,
             FileContext {
-                file: "test_symbols".to_string(),
+                filename: "test_symbols".to_string(),
                 source,
                 line: 1,
             },
@@ -113,7 +113,7 @@ mod tests {
         let mut lex = Token::lexer_with_extras(
             source,
             FileContext {
-                file: "test3".to_string(),
+                filename: "test3".to_string(),
                 source,
                 line: 1,
             },

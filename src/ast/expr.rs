@@ -3,17 +3,17 @@ use super::*;
 use super::assign::parse_assign;
 
 #[derive(Clone)]
-pub enum Expr {
-    FnDef(FnDef),
-    FnCall(FnCall),
+pub enum Expr<'source> {
+    FnDef(FnDef<'source>),
+    FnCall(FnCall<'source>),
 
-    Assign(Assign),
+    Assign(Assign<'source>),
 
     Int(i32),
-    String(&'static str),
+    String(&'source str),
 }
 
-impl std::fmt::Debug for Expr {
+impl std::fmt::Debug for Expr<'_> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Expr::FnDef(fn_def) => fn_def.fmt(f),
@@ -25,8 +25,8 @@ impl std::fmt::Debug for Expr {
     }
 }
 
-impl AstNode for Expr {
-    fn build_context(&self, ctx: &mut ProgramContext, scope_stack: &mut Vec<ScopeId>) {
+impl<'source> AstNode<'source> for Expr<'source> {
+    fn build_context(&self, ctx: &mut ProgramContext<'source>, scope_stack: &mut Vec<ScopeId>) {
         match self {
             Expr::FnDef(fn_def) => fn_def.build_context(ctx, scope_stack),
             Expr::Assign(assign) => assign.build_context(ctx, scope_stack),
@@ -54,15 +54,15 @@ impl AstNode for Expr {
     }
 }
 
-impl Parsable for Expr {
+impl<'source> Parsable<'source> for Expr<'source> {
     /// Should be called when on the first token
-    fn parse(parser: &mut Parser) -> Result<Expr, ParsingError> {
+    fn parse(parser: &mut Parser<'source>) -> Result<Expr<'source>, ParsingError<'source>> {
         let token = match parser.current_token.as_ref() {
             Some(Ok(token)) => token,
             Some(Err(())) => {
                 return Err(ParsingError::TokenError(format!(
                     "Lexer error in {file}@{line}",
-                    file = parser.lexer.extras.file,
+                    file = parser.lexer.extras.filename,
                     line = parser.lexer.extras.line
                 )))
             }
@@ -99,7 +99,7 @@ impl Parsable for Expr {
                     })),
                     Some(Err(())) => Err(ParsingError::TokenError(format!(
                         "Lexer error in {file}@{line}",
-                        file = parser.lexer.extras.file,
+                        file = parser.lexer.extras.filename,
                         line = parser.lexer.extras.line,
                     ))),
                 }

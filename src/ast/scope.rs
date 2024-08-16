@@ -39,15 +39,15 @@ pub(super) fn change_indentation(change: IndentationChange) -> usize {
 pub(super) type ScopeId = usize;
 
 #[derive(Debug)]
-pub struct ProgramContext {
-    pub symbols: SymbolTable,
-    pub file_context: FileContext,
+pub struct ProgramContext<'source> {
+    pub symbols: SymbolTable<'source>,
+    pub file_context: FileContext<'source>,
 }
 
-pub type SymbolTable = HashMap<&'static str, Vec<Symbol>>;
+pub type SymbolTable<'source> = HashMap<&'source str, Vec<Symbol<'source>>>;
 
 #[derive(Debug)]
-pub struct Symbol {
+pub struct Symbol<'source> {
     pub scope: ScopeId,
-    pub value: Rc<Expr>,
+    pub value: Rc<Expr<'source>>,
 }

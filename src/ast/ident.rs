@@ -3,15 +3,15 @@ use crate::ast::current_padding;
 use super::{AstNode, CheckResult, ProgramContext, ScopeId};
 
 #[derive(Debug, Clone)]
-pub struct Ident(pub &'static str);
+pub struct Ident<'source>(pub &'source str);
 
-impl std::fmt::Display for Ident {
+impl std::fmt::Display for Ident<'_> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "Ident<{}>", self.0)
     }
 }
 
-impl AstNode for Ident {
+impl AstNode<'_> for Ident<'_> {
     fn build_context(&self, _ctx: &mut ProgramContext, _scope_stack: &mut Vec<ScopeId>) {}
 
     fn check_and_emit<Output: std::io::Write>(

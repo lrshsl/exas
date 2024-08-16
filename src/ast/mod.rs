@@ -37,7 +37,7 @@ use crate::parser::Parser;
 pub type CheckResult<T> = Result<T, CheckError>;
 
 pub enum CheckError {
-    CompileError(FileContext, String),
+    CompileError(SyntaxErrorContext, String),
     EmitError(io::Error),
 }
 
@@ -47,7 +47,7 @@ impl std::fmt::Display for CheckError {
             CheckError::CompileError(context, msg) => write!(
                 f,
                 "[Compile Error]<{file} {line}> {msg}",
-                file = context.file,
+                file = context.filename,
                 line = context.line
             ),
             CheckError::EmitError(error) => write!(f, "{}", error),
@@ -62,32 +62,50 @@ impl From<io::Error> for CheckError {
 }
 
 pub fn compile_error<T>(context: FileContext, msg: String) -> CheckResult<T> {
-    Err(CheckError::CompileError(context, msg))
+    Err(CheckError::CompileError(
+        SyntaxErrorContext {
+            line: context.line,
+            filename: context.filename,
+            line_content: context
+                .source
+                .lines()
+                .nth(context.line - 1)
+                .expect("Not a valid source line")
+                .to_string(),
+        },
+        msg,
+    ))
 }
 
-pub trait AstNode {
-    fn build_context(&self, ctx: &mut ProgramContext, scope_stack: &mut Vec<ScopeId>);
+pub struct SyntaxErrorContext {
+    pub filename: String,
+    pub line: usize,
+    pub line_content: String,
+}
+
+pub trait AstNode<'source> {
+    fn build_context(&self, ctx: &mut ProgramContext<'source>, scope_stack: &mut Vec<ScopeId>);
     fn check_and_emit<Output: io::Write>(
         &self,
         output: &mut Output,
-        ctx: &ProgramContext,
+        ctx: &ProgramContext<'source>,
         scope_stack: &mut Vec<ScopeId>,
     ) -> CheckResult<()>;
 }
 
-pub trait Parsable {
-    fn parse(parser: &mut Parser) -> Result<Self, ParsingError>
+pub trait Parsable<'source> {
+    fn parse(parser: &mut Parser<'source>) -> Result<Self, ParsingError<'source>>
     where
         Self: Sized;
 }
 
 #[derive(Debug)]
-pub struct Ast {
-    pub program: ListContent,
+pub struct Ast<'source> {
+    pub program: ListContent<'source>,
 }
 
-impl Ast {
-    pub fn build_context(&self, ctx: &mut ProgramContext) {
+impl<'source> Ast<'source> {
+    pub fn build_context(&self, ctx: &mut ProgramContext<'source>) {
         reset_scope_and_indent();
         self.program.build_context(ctx, &mut vec![next_scope()]);
     }

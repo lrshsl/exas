@@ -5,18 +5,18 @@ use crate::{ast::current_padding, parser::Parser};
 use super::*;
 
 #[derive(Debug, Clone)]
-pub struct FnSignature {
-    pub params: Vec<Param>,
+pub struct FnSignature<'source> {
+    pub params: Vec<Param<'source>>,
 }
 
 #[derive(Debug, Clone)]
-pub struct FnDef {
-    pub signature: FnSignature,
-    pub body: ListContent,
+pub struct FnDef<'source> {
+    pub signature: FnSignature<'source>,
+    pub body: ListContent<'source>,
 }
 
-impl AstNode for FnDef {
-    fn build_context(&self, ctx: &mut ProgramContext, scope_stack: &mut Vec<ScopeId>) {
+impl<'source> AstNode<'source> for FnDef<'source> {
+    fn build_context(&self, ctx: &mut ProgramContext<'source>, scope_stack: &mut Vec<ScopeId>) {
         self.body.build_context(ctx, scope_stack);
     }
 
@@ -37,8 +37,8 @@ impl AstNode for FnDef {
     }
 }
 
-impl Parsable for FnDef {
-    fn parse(parser: &mut Parser) -> Result<FnDef, ParsingError> {
+impl<'source> Parsable<'source> for FnDef<'source> {
+    fn parse(parser: &mut Parser<'source>) -> Result<FnDef<'source>, ParsingError<'source>> {
         let params = ParamList::parse(parser)?;
         let body = ListContent::parse(parser)?;
         Ok(FnDef {
