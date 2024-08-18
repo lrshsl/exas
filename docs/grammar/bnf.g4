@@ -5,12 +5,13 @@ ast
 	;
 
 list
-	: '{' listcontent '}'  // Immutable
+	: '{' listcontent '}'  // Const
 	| '[' listcontent ']'  // Mutable
 	;
 
 listcontent
-	: (Annex? expr? ',')* expr? Annex?
+	//: (Annex? expr? ',')* expr? Annex?
+	: expr? (',' expr?)*
 	;
 
 expr
@@ -50,35 +51,26 @@ anyToken
 	| '!'  | '#' | '$' | '%' | '&' | '\''
 	| '*'  | '+' | '-' | '.' | '/' | ':'
 	| ';'  | '<' | '=' | '>' | '?' | '@'
-	| '\\' | '^' | '_' | '`' | '|' | '~'
+	| '\\' | '^' | '_' | '`' | '~'
 	;
 
 //---|> Lexer rules <|---//
 
 CommentOrDoc
-	: (LineComment | BlockComment | InlineDoc | BlockDoc) -> channel(HIDDEN)
+	: (Comment | Doc) -> channel(HIDDEN)
 	;
 
-LineComment
-	: '//' ~[\n\r]*
+Doc
+	: '||' ~[|\n\r]* '||'?
 	;
 
-BlockComment
-	: '/..' (CommentOrDoc | ~[.])*? '../'
+Comment
+	: '|' ~[|\n\r]* '|'?
 	;
 
-// Tag
-InlineDoc
-	: '\'' ~[\n\r]* '\'' -> channel(HIDDEN)
-	;
-
-BlockDoc
-	: '///' ~[\n\r]* -> channel(HIDDEN)
-	;
-
-Annex
-	: '|' ~[\n\r]*
-	;
+//BlockComment
+//	: '|..' (CommentOrDoc | ~[.])*? '..|'
+//	;
 
 Reg
 	: 'r' [0-9]+
