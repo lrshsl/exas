@@ -1,16 +1,29 @@
+"expr",
 
-// Idea:
-// - Program close to the hardware
-// - No functions, blocks
+42, 69,,
 
 
-// Hardware agnostic
-// - registers
-// - 
+f = fn arg {
+	print arg,
+},
 
-f1 = fn {             | function f1
-	print "f1 ran",   | prints a line
-	x + 1,            | returns x + 1
+| This is a comment, the following are docs:
+||
+|| Idea:
+|| - Program close to the hardware
+|| - No functions, only labeled blocks
+||   - Don't wanna do the above, I need pattern matching
+||   - Functions and macros are the same
+||   - Functions can be const, which means they're run before the program starts (i.e. compiletime)
+||
+|| Hardware agnostic
+|| - registers
+
+| `void` is a comment, so it does nothing.
+|
+f1 = |void| fn {            | function f1
+	print "f1 ran",          | prints a line
+	calc x + 1,              | returns x + 1
 },
 
 f2 = fn x y {

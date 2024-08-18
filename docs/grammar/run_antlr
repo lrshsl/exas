@@ -10,7 +10,7 @@ if [ ! -f grammar/bnf.g4 ]; then
     exit 1
 fi
 
-for file in $@; do
+for file in "$@"; do
     echo -e "<-< File $file, writing contents: >->\n<<<"
     cat $file
     echo -e ">>>>\n\n<-< End file contents >->"

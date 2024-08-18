@@ -6,64 +6,39 @@ use std::fs;
 use std::io::{self, Read, Write};
 use std::path::PathBuf;
 
-use clap::{Parser as ArgParser, Subcommand};
-
 use ast::{Ast, ProgramContext};
+use clap::Parser as _;
+use cli::{BuildArgs, Cli, CliSubCommand};
 use lexer::{FileContext, Token};
 use logos::Logos;
 use parser::Parser;
 use parsing_error::ParsingError;
 
 mod ast;
+mod cli;
 mod lexer;
 mod parser;
 mod parsing_error;
 
-#[derive(ArgParser)]
-#[command(version, about, long_about = None)]
-struct Cli {
-    /// Input source files. Can be omitted to read from stdin
-    input_files: Option<Vec<PathBuf>>,
-
-    /// Write output to a file. Can be omitted to write to stdout
-    #[arg(short, long, value_name = "FILE")]
-    output: Option<PathBuf>,
-
-    #[arg(short, long, default_value_t = 0, value_parser = clap::value_parser!(u8).range(0..4))]
-    verbosity: u8,
-
-    /// Emit <out>.ast and <out>.sym files
-    #[arg(short, long)]
-    all: bool,
-
-    /// Emit the ast to a file
-    #[arg(long, value_name = "FILE")]
-    ast: Option<PathBuf>,
-
-    /// Emit the entire symbol table to a file
-    #[arg(long, value_name = "FILE")]
-    symbols: Option<PathBuf>,
-
-    /// Subcommands
-    #[command(subcommand)]
-    command: CliSubCommand,
-}
-
-#[derive(Subcommand)]
-enum CliSubCommand {
-    Build,
-    Run,
-}
-
 fn main() {
     let cli = Cli::parse();
 
+    match &cli.command {
+        CliSubCommand::Build(ref build_args) => build(&cli, build_args),
+        CliSubCommand::Run(ref build_args) => {
+            build(&cli, build_args);
+            todo!("And then run")
+        }
+    }
+}
+
+fn build(cli: &Cli, build_args: &BuildArgs) {
     let mut source = String::new();
-    match cli.input_files.as_deref() {
+    let compilation_result = match build_args.input_files.as_deref() {
         None => {
             io::stdin().read_to_string(&mut source).unwrap();
 
-            compile("stdin", &source, &cli)
+            compile("stdin", &source, &cli, &build_args)
         }
         Some([ref file]) => {
             fs::File::open(file)
@@ -71,19 +46,31 @@ fn main() {
                 .read_to_string(&mut source)
                 .unwrap();
 
-            compile(file.to_str().unwrap(), &source, &cli)
+            compile(file.to_str().unwrap(), &source, &cli, &build_args)
         }
         Some([..]) => panic!("Too many files"),
+    };
+
+    if let Err(error) = compilation_result {
+        eprintln!("{}", error);
+        std::process::exit(1);
     }
-    .unwrap()
 }
 
 pub type CompileResult<'source, T> = Result<T, CompileError<'source>>;
 
-#[derive(Debug)]
 pub enum CompileError<'source> {
     ParsingError(ParsingError<'source>),
     IoError(io::Error),
+}
+
+impl std::fmt::Display for CompileError<'_> {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        match self {
+            CompileError::ParsingError(error) => write!(f, "{}", error),
+            CompileError::IoError(error) => write!(f, "{}", error),
+        }
+    }
 }
 
 impl<'source> From<ParsingError<'source>> for CompileError<'source> {
@@ -102,6 +89,7 @@ fn compile<'source>(
     name: &'source str,
     source: &'source str,
     cli: &Cli,
+    build_args: &BuildArgs,
 ) -> CompileResult<'source, ()> {
     let file_context = FileContext {
         filename: name.to_string(),
@@ -112,8 +100,8 @@ fn compile<'source>(
     // ================  Ast  ================= //
     let ast = get_ast(source, file_context.clone())?;
 
-    if let Some(path) = &cli.ast.clone().or_else(|| {
-        if cli.all {
+    if let Some(path) = build_args.ast.clone().or_else(|| {
+        if build_args.all {
             Some(PathBuf::from(format!("{}.ast", name)))
         } else {
             None
@@ -132,8 +120,8 @@ fn compile<'source>(
         },
     };
     ast.build_context(&mut program_ctx);
-    if let Some(path) = &cli.symbols.clone().or_else(|| {
-        if cli.all {
+    if let Some(path) = build_args.symbols.clone().or_else(|| {
+        if build_args.all {
             Some(PathBuf::from(format!("{}.sym", name)))
         } else {
             None
@@ -144,7 +132,7 @@ fn compile<'source>(
     }
 
     // ==============  Expand  ================ //
-    let result = match cli.output {
+    let result = match build_args.output {
         Some(ref path) => {
             let mut output_file = fs::File::create(path)?;
             ast.check_and_emit(&mut output_file, &program_ctx)

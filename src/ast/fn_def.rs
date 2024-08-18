@@ -32,7 +32,7 @@ impl<'source> AstNode<'source> for FnDef<'source> {
             writeln!(output, "{}{:?},", current_padding(), param)?;
         }
         change_indentation(scope::IndentationChange::Less);
-        write!(output, "{}]", current_padding())?;
+        write!(output, "{}] ", current_padding())?;
         self.body.check_and_emit(output, ctx, scope_stack)
     }
 }

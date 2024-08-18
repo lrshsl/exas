@@ -29,7 +29,7 @@ impl<'source> AstNode<'source> for ListContent<'source> {
         scope_stack: &mut Vec<ScopeId>,
     ) -> CheckResult<()> {
         // Start a new scope
-        writeln!(output, "{}{{", current_padding())?;
+        writeln!(output, "{{")?;
         scope_stack.push(next_scope());
         change_indentation(scope::IndentationChange::More);
 

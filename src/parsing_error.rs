@@ -11,7 +11,7 @@ pub enum ParsingError<'source> {
     TokenError(String),
 }
 
-impl std::fmt::Debug for ParsingError<'_> {
+impl std::fmt::Display for ParsingError<'_> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             ParsingError::AbruptEof(msg, context, expected) => {
