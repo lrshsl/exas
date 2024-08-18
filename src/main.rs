@@ -86,7 +86,7 @@ fn compile<'source>(
             None
         }
     }) {
-        let mut ast_file = fs::File::create(path.clone())?;
+        let mut ast_file = fs::File::create(&path)?;
         if cli.verbosity >= Verbosity::Info {
             println!("Emitting AST to {}", path.display());
         }
@@ -109,7 +109,10 @@ fn compile<'source>(
             None
         }
     }) {
-        let mut symbols_file = fs::File::create(path)?;
+        let mut symbols_file = fs::File::create(&path)?;
+        if cli.verbosity >= Verbosity::Info {
+            println!("Emitting symbols to {}", path.display());
+        }
         write!(symbols_file, "{:#?}", program_ctx)?;
     }
 
@@ -117,10 +120,16 @@ fn compile<'source>(
     let result = match build_args.output {
         Some(ref path) => {
             let mut output_file = fs::File::create(path)?;
+            if cli.verbosity >= Verbosity::Info {
+                println!("Emitting to {}", path.display());
+            }
             ast.check_and_emit(&mut output_file, &program_ctx)
         }
         None => {
             let mut output_file = io::stdout().lock();
+            if cli.verbosity >= Verbosity::Info {
+                println!("Emitting to stdout");
+            }
             ast.check_and_emit(&mut output_file, &program_ctx)
         }
     };
