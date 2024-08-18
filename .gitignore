@@ -1,1 +1,28 @@
-/target
+# Ignore everything by default
+*
+
+# Only include the following
+!.gitignore
+
+!README.md
+!/Cargo.toml
+!Doxyfile
+
+# Include all rs files in src/
+!src/
+!src/**/*.rs
+
+# Include everything in the examples/ directory
+!examples/
+!examples/**/*
+
+# Include everything in the docs/ directory except docs/generated/
+!docs/
+!docs/**/*
+docs/generated/
+
+!asm/
+!asm/**/*
+
+
+
