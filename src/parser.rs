@@ -1,6 +1,6 @@
 use logos::Logos;
 
-use crate::{ast::*, lexer::Token, parsing_error::ParsingError};
+use crate::{ast::*, errors::ParsingError, lexer::Token};
 
 pub type LogosError<'source> = <Token<'source> as Logos<'source>>::Error;
 pub type LogosLexer<'source> = logos::Lexer<'source, Token<'source>>;

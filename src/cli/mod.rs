@@ -1,6 +1,9 @@
+use clap::{arg, builder::TypedValueParser as _, command, Args, Parser as ArgParser, Subcommand};
 use std::path::PathBuf;
 
-use clap::{arg, command, Args, Parser as ArgParser, Subcommand};
+pub use verbosity::Verbosity;
+
+mod verbosity;
 
 #[derive(ArgParser)]
 #[command(version, about, long_about = None)]
@@ -9,8 +12,13 @@ pub struct Cli {
     #[command(subcommand)]
     pub command: CliSubCommand,
 
-    #[arg(short, long, default_value_t = 0, value_parser = clap::value_parser!(u8).range(0..4))]
-    pub verbosity: u8,
+    #[arg(
+        short, long,
+        default_value_t = Verbosity::Info,
+        value_parser = clap::builder::PossibleValuesParser::new(["trace", "debug", "info", "warn", "error"])
+            .map(|s| s.parse::<Verbosity>().unwrap()),
+    )]
+    pub verbosity: Verbosity,
 }
 
 #[derive(Subcommand)]

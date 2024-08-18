@@ -1,4 +1,5 @@
 use super::*;
+use crate::errors::compile_error;
 
 #[derive(Debug, Clone)]
 pub struct FnCall<'source> {

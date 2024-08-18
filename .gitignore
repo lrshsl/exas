@@ -2,27 +2,30 @@
 *
 
 # Only include the following
-!.gitignore
+!/.gitignore
 
-!README.md
+!/README.md
 !/Cargo.toml
-!Doxyfile
 
-# Include all rs files in src/
-!src/
-!src/**/*.rs
+# Include the src directory and all its subdirectories, and all .rs files within them
+!/src/
+!/src/**
+!/src/**/*.rs
 
 # Include everything in the examples/ directory
-!examples/
-!examples/**/*
+!/examples/
+!/examples/**
+!/examples/**/*
 
 # Include everything in the docs/ directory except docs/generated/
-!docs/
-!docs/**/*
-docs/generated/
+!/docs/
+!/docs/**
+!/docs/**/*
 
-!asm/
-!asm/**/*
+!/asm/
+!/asm/**
+!/asm/**/*
+/asm/build/
 
 
 

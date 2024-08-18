@@ -8,17 +8,17 @@ use std::path::PathBuf;
 
 use ast::{Ast, ProgramContext};
 use clap::Parser as _;
-use cli::{BuildArgs, Cli, CliSubCommand};
+use cli::{BuildArgs, Cli, CliSubCommand, Verbosity};
+use errors::{CompileResult, ParsingError};
 use lexer::{FileContext, Token};
 use logos::Logos;
 use parser::Parser;
-use parsing_error::ParsingError;
 
 mod ast;
 mod cli;
+mod errors;
 mod lexer;
 mod parser;
-mod parsing_error;
 
 fn main() {
     let cli = Cli::parse();
@@ -36,7 +36,9 @@ fn build(cli: &Cli, build_args: &BuildArgs) {
     let mut source = String::new();
     let compilation_result = match build_args.input_files.as_deref() {
         None => {
-            io::stdin().read_to_string(&mut source).unwrap();
+            io::stdin()
+                .read_to_string(&mut source)
+                .expect("Could not read stdin (might be caused by not enough memory)");
 
             compile("stdin", &source, &cli, &build_args)
         }
@@ -44,9 +46,14 @@ fn build(cli: &Cli, build_args: &BuildArgs) {
             fs::File::open(file)
                 .unwrap()
                 .read_to_string(&mut source)
-                .unwrap();
+                .expect("Could not read input file (might be caused by not enough memory)");
 
-            compile(file.to_str().unwrap(), &source, &cli, &build_args)
+            compile(
+                file.file_stem().unwrap().to_str().unwrap(),
+                &source,
+                &cli,
+                &build_args,
+            )
         }
         Some([..]) => panic!("Too many files"),
     };
@@ -54,34 +61,6 @@ fn build(cli: &Cli, build_args: &BuildArgs) {
     if let Err(error) = compilation_result {
         eprintln!("{}", error);
         std::process::exit(1);
-    }
-}
-
-pub type CompileResult<'source, T> = Result<T, CompileError<'source>>;
-
-pub enum CompileError<'source> {
-    ParsingError(ParsingError<'source>),
-    IoError(io::Error),
-}
-
-impl std::fmt::Display for CompileError<'_> {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        match self {
-            CompileError::ParsingError(error) => write!(f, "{}", error),
-            CompileError::IoError(error) => write!(f, "{}", error),
-        }
-    }
-}
-
-impl<'source> From<ParsingError<'source>> for CompileError<'source> {
-    fn from(e: ParsingError<'source>) -> Self {
-        CompileError::ParsingError(e)
-    }
-}
-
-impl From<io::Error> for CompileError<'_> {
-    fn from(e: io::Error) -> Self {
-        CompileError::IoError(e)
     }
 }
 
@@ -107,7 +86,10 @@ fn compile<'source>(
             None
         }
     }) {
-        let mut ast_file = fs::File::create(path)?;
+        let mut ast_file = fs::File::create(path.clone())?;
+        if cli.verbosity >= Verbosity::Info {
+            println!("Emitting AST to {}", path.display());
+        }
         write!(ast_file, "{:#?}", ast)?;
     }
 
