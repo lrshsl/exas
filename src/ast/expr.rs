@@ -25,6 +25,18 @@ impl std::fmt::Debug for Expr<'_> {
     }
 }
 
+impl CompTimeSize for Expr<'_> {
+    fn number_bytes(&self) -> usize {
+        match self {
+            Self::FnDef(_) => unreachable!(),
+            Self::FnCall(_) => todo!(), //fn_call.number_bytes(),
+            Self::Assign(_) => todo!(), //assign.number_bytes(),
+            Self::Int(_) => 4,
+            Self::String(_) => todo!(),
+        }
+    }
+}
+
 impl<'source> AstNode<'source> for Expr<'source> {
     fn build_context(&self, ctx: &mut ProgramContext<'source>, scope_stack: &mut Vec<ScopeId>) {
         match self {

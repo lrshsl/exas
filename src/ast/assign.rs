@@ -1,8 +1,9 @@
+use fn_call::push_args;
 use scope::change_indentation;
 
 use super::*;
-use std::io;
 use std::rc::Rc;
+use std::{io, ops::Deref};
 
 use super::{AstNode, Expr, ProgramContext, ScopeId, Symbol};
 
@@ -26,10 +27,23 @@ impl<'source> AstNode<'source> for Assign<'source> {
         ctx: &ProgramContext,
         scope_stack: &mut Vec<ScopeId>,
     ) -> CheckResult<()> {
-        writeln!(output, "{}let {} = ", current_padding(), self.name)?;
-        change_indentation(scope::IndentationChange::More);
-        self.value.check_and_emit(output, ctx, scope_stack)?;
-        change_indentation(scope::IndentationChange::Less);
+        match self.value.deref() {
+            Expr::FnDef(fn_def) => {
+                writeln!(output, "{}: ", self.name)?;
+                change_indentation(scope::IndentationChange::More);
+                fn_def.check_and_emit(output, ctx, scope_stack)?;
+                change_indentation(scope::IndentationChange::Less);
+            }
+            Expr::FnCall(fn_call) => {
+                push_args(output, &fn_call.args)?;
+                writeln!(output, "call {}", self.name)?;
+            }
+            Expr::Int(int) => {
+                writeln!(output, "move 4b {} -> {}", int, self.name)?;
+            }
+            Expr::Assign(_) => todo!(),
+            Expr::String(_) => todo!(),
+        }
         Ok(())
     }
 }

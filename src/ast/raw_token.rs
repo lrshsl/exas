@@ -12,6 +12,18 @@ pub enum RawToken<'source> {
     Expr(Expr<'source>),
 }
 
+impl CompTimeSize for RawToken<'_> {
+    fn number_bytes(&self) -> usize {
+        match self {
+            Self::Int(int) => 4,
+            Self::Ident(_) => todo!(),
+            Self::String(_) => todo!(),
+            Self::Symbol(_) => 1,
+            Self::Expr(expr) => expr.number_bytes(),
+        }
+    }
+}
+
 impl std::fmt::Debug for RawToken<'_> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {

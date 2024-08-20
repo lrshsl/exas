@@ -1,6 +1,22 @@
 use super::*;
 use crate::errors::compile_error;
 
+pub fn push_args<Output: io::Write>(
+    output: &mut Output,
+    remaining_args: &[RawToken],
+) -> CheckResult<()> {
+    match remaining_args {
+        [] => {}
+        [RawToken::Int(int)] => writeln!(output, "push<4b> {}", int)?,
+        [RawToken::Int(int), tail @ ..] => {
+            writeln!(output, "push<4b> {}", int)?;
+            push_args(output, tail)?;
+        }
+        _ => todo!(),
+    }
+    Ok(())
+}
+
 #[derive(Debug, Clone)]
 pub struct FnCall<'source> {
     pub name: &'source str,
@@ -28,6 +44,7 @@ impl AstNode<'_> for FnCall<'_> {
                 .filter(|f| scope_stack.contains(&f.scope))
                 .collect::<Vec<_>>()[..]
             {
+                [one_match] => one_match,
                 [] => {
                     return compile_error(
                         ctx.file_context.clone(),
@@ -38,7 +55,6 @@ impl AstNode<'_> for FnCall<'_> {
                         ),
                     )
                 }
-                [one_match] => one_match,
                 [..] => {
                     return compile_error(
                         ctx.file_context.clone(),
@@ -51,13 +67,8 @@ impl AstNode<'_> for FnCall<'_> {
             },
         };
         // Todo: check signature
-        writeln!(
-            output,
-            "{}FnCall({}, {:?})",
-            current_padding(),
-            self.name,
-            self.args
-        )?;
+        push_args(output, &self.args)?;
+        writeln!(output, "{}call {}", current_padding(), self.name)?;
         Ok(())
     }
 }

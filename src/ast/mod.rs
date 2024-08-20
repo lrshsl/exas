@@ -50,6 +50,10 @@ pub trait Parsable<'source> {
         Self: Sized;
 }
 
+pub trait CompTimeSize {
+    fn number_bytes(&self) -> usize;
+}
+
 #[derive(Debug)]
 pub struct Ast<'source> {
     pub program: ListContent<'source>,

@@ -1,8 +1,18 @@
-use scope::change_indentation;
-
 use crate::{ast::current_padding, parser::Parser};
 
 use super::*;
+
+pub struct Register(u8);
+
+impl std::fmt::Display for Register {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "r{}", self.0)
+    }
+}
+
+pub fn free_register() -> Register {
+    return Register(0);
+}
 
 #[derive(Debug, Clone)]
 pub struct FnSignature<'source> {
@@ -26,13 +36,19 @@ impl<'source> AstNode<'source> for FnDef<'source> {
         ctx: &ProgramContext,
         scope_stack: &mut Vec<ScopeId>,
     ) -> CheckResult<()> {
-        writeln!(output, "{}fn [", current_padding())?;
-        change_indentation(scope::IndentationChange::More);
         for param in &self.signature.params {
-            writeln!(output, "{}{:?},", current_padding(), param)?;
+            match param.number_bytes() {
+                //todo
+                _ => writeln!(
+                    output,
+                    "{}pop<{}b> -> {}",
+                    current_padding(),
+                    param.number_bytes(),
+                    free_register()
+                )?,
+            }
         }
-        change_indentation(scope::IndentationChange::Less);
-        write!(output, "{}] ", current_padding())?;
+        writeln!(output, "{}ret\n", current_padding())?;
         self.body.check_and_emit(output, ctx, scope_stack)
     }
 }

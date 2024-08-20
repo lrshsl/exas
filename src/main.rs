@@ -59,7 +59,7 @@ fn build(cli: &Cli, build_args: &BuildArgs) {
     };
 
     if let Err(error) = compilation_result {
-        eprintln!("{}", error);
+        eprintln!("Compilation failed: {}", error);
         std::process::exit(1);
     }
 }

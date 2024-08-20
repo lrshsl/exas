@@ -6,6 +6,15 @@ pub struct Param<'source> {
     pub pattern: MatchPattern<'source>,
 }
 
+impl CompTimeSize for Param<'_> {
+    fn number_bytes(&self) -> usize {
+        match &self.pattern {
+            MatchPattern::RawToken(raw_token) => raw_token.number_bytes(),
+            MatchPattern::TypeExpr => todo!(),
+        }
+    }
+}
+
 impl std::fmt::Debug for Param<'_> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         if let Some(name) = self.name {

@@ -4,10 +4,11 @@
 
 
 f = fn arg {
-	print arg,
+	print arg, | commen
 },
 
 | This is a comment, the following are docs:
+
 ||
 || Idea:
 || - Program close to the hardware
