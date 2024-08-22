@@ -25,6 +25,25 @@ pub struct FnDef<'source> {
     pub body: ListContent<'source>,
 }
 
+fn stack_pop_remaining_parameters<Output: std::io::Write>(
+    output: &mut Output,
+    params: &Vec<Param>,
+) -> CheckResult<()> {
+    for param in params {
+        match param.number_bytes() {
+            //todo
+            _ => writeln!(
+                output,
+                "{}pop<{}b> -> {}       | argument",
+                current_padding(),
+                param.number_bytes(),
+                free_register()
+            )?,
+        }
+    }
+    Ok(())
+}
+
 impl<'source> AstNode<'source> for FnDef<'source> {
     fn build_context(&self, ctx: &mut ProgramContext<'source>, scope_stack: &mut Vec<ScopeId>) {
         self.body.build_context(ctx, scope_stack);
@@ -36,18 +55,8 @@ impl<'source> AstNode<'source> for FnDef<'source> {
         ctx: &ProgramContext,
         scope_stack: &mut Vec<ScopeId>,
     ) -> CheckResult<()> {
-        for param in &self.signature.params {
-            match param.number_bytes() {
-                //todo
-                _ => writeln!(
-                    output,
-                    "{}pop<{}b> -> {}",
-                    current_padding(),
-                    param.number_bytes(),
-                    free_register()
-                )?,
-            }
-        }
+        // TODO: pass first parameters through registers
+        stack_pop_remaining_parameters(output, &self.signature.params)?;
         writeln!(output, "{}ret\n", current_padding())?;
         self.body.check_and_emit(output, ctx, scope_stack)
     }
