@@ -29,6 +29,8 @@ pub use fn_def::FnDef;
 mod params;
 pub use params::{Param, ParamList};
 
+mod typeexpr;
+
 mod listcontent;
 pub use listcontent::ListContent;
 
@@ -50,8 +52,8 @@ pub trait Parsable<'source> {
         Self: Sized;
 }
 
-pub trait CompTimeSize {
-    fn number_bytes(&self) -> usize;
+pub trait CompTimeSize<'source> {
+    fn number_bytes(&self, ctx: &'source ProgramContext) -> usize;
 }
 
 #[derive(Debug)]

@@ -14,11 +14,14 @@ pub enum Token<'source> {
     #[regex(r"[[:alpha:]][[:alpha:][:digit:]]*")]
     Ident,
 
-    #[regex(r"[0-9]+", |lex| lex.slice().parse::<i32>().expect("Wrong"))]
-    Int(i32),
+    #[regex(r"[0-9]+", |lex| lex.slice().parse::<u32>().expect("Wrong"))]
+    Int(u32),
 
     #[token(r"fn")]
     KeywordFn,
+
+    #[token(r"type")]
+    KeywordType,
 
     #[regex(r#""([^"\\]|\\["\\bnfrt]|u\p{hexdigit}{4})*""#)]
     String,
@@ -31,6 +34,9 @@ pub enum Token<'source> {
         Skip
     })]
     Newline,
+
+    #[regex(r"|[^\n]*", logos::skip)]
+    Comment,
 }
 
 #[cfg(test)]

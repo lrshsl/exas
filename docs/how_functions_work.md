@@ -1,5 +1,7 @@
 # Functions | macros - pattern matching
 
+> This document is just a help for me to collect my thoughts. The described
+> language doesn't exists and may be impossible.
 
 ## Function call
 
@@ -40,8 +42,8 @@ specific, unexpanded tokens, but can be made more general by using powerful
 Some examples:
 
 ```exas
-echo = fn first [first_0: Str] {
-    println "hi" first,
+echo = fn first [first_arg: Str] {
+    println "hi" first_arg,
 },
 echo = fn (second [second_0: Str] [second_1: Str]) {
     println second_0 second_1,
@@ -91,8 +93,8 @@ All of the above function calls would match this function declaration.
 
 ## Parameters
 
-Even more useful is it, to being able to access the values of the arguments in
-the function body. For that, they can be given a name:
+Even more useful is it to being able to access the values of the arguments in
+the function body. For that, usually, they are given a name:
 
 ```exas
 fn-name = fn ([arg1: Str] [arg2: Ident] [arg3: Number]) {
@@ -102,10 +104,8 @@ fn-name = fn ([arg1: Str] [arg2: Ident] [arg3: Number]) {
 
 ## Where clause
 
-You know Rust? Rust is cool.
-
 ```exas
-fn-name = fn ([arg1] [arg2] [arg3])
+fn-name = fn [arg1] [arg2] [arg3]
     where
         arg1: Str,
         arg2: Ident,
@@ -162,7 +162,7 @@ Number = type ([a: Any]) {
 ```
 
 > Note: The syntax of `match` | `is` statements is not consistent. It is
-> unclear yet, which version it's gonna be.
+> unclear yet which version it's gonna be.
 
 The `type` keyword guarantees that the function can run at compile time,
 returns a `bool` and may throw a `comptime-error`.

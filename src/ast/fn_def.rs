@@ -26,17 +26,18 @@ pub struct FnDef<'source> {
 }
 
 fn stack_pop_remaining_parameters<Output: std::io::Write>(
+    ctx: &ProgramContext,
     output: &mut Output,
     params: &Vec<Param>,
 ) -> CheckResult<()> {
     for param in params {
-        match param.number_bytes() {
+        match param.number_bytes(ctx) {
             //todo
             _ => writeln!(
                 output,
                 "{}pop<{}b> -> {}       | argument",
                 current_padding(),
-                param.number_bytes(),
+                param.number_bytes(ctx),
                 free_register()
             )?,
         }
@@ -56,7 +57,7 @@ impl<'source> AstNode<'source> for FnDef<'source> {
         scope_stack: &mut Vec<ScopeId>,
     ) -> CheckResult<()> {
         // TODO: pass first parameters through registers
-        stack_pop_remaining_parameters(output, &self.signature.params)?;
+        stack_pop_remaining_parameters(ctx, output, &self.signature.params)?;
         writeln!(output, "{}ret\n", current_padding())?;
         self.body.check_and_emit(output, ctx, scope_stack)
     }

@@ -1,0 +1,6 @@
+
+Degrees = type 2,		| two bytes
+
+turn = fn [:Degrees] { }
+
+turn 9,

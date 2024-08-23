@@ -41,6 +41,7 @@ pub(super) type ScopeId = usize;
 #[derive(Debug)]
 pub struct ProgramContext<'source> {
     pub symbols: SymbolTable<'source>,
+    pub types: HashMap<&'source str, typeexpr::Type>,
     pub file_context: FileContext<'source>,
 }
 

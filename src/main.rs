@@ -96,6 +96,7 @@ fn compile<'source>(
     // ==========  Program Context  =========== //
     let mut program_ctx = ProgramContext {
         symbols: HashMap::new(),
+        types: HashMap::new(),
         file_context: FileContext {
             line: 1,
             ..file_context

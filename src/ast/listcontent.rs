@@ -62,9 +62,11 @@ impl<'source> Parsable<'source> for ListContent<'source> {
                     break;
                 }
 
-                Token::Ident | Token::Int(_) | Token::String | Token::KeywordFn => {
-                    elements.push(Expr::parse(parser)?)
-                }
+                Token::Ident
+                | Token::Int(_)
+                | Token::String
+                | Token::KeywordFn
+                | Token::KeywordType => elements.push(Expr::parse(parser)?),
 
                 Token::Symbol(_) => {
                     return Err(ParsingError::UnexpectedToken(

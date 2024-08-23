@@ -4,7 +4,7 @@
 
 
 f = fn arg {
-	print arg, | commen
+	print arg, | comment
 },
 
 | This is a comment, the following are docs:

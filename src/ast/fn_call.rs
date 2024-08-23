@@ -1,3 +1,5 @@
+use expr::SmallValue;
+
 use super::*;
 use crate::errors::compile_error;
 
@@ -7,10 +9,14 @@ pub fn push_args<Output: io::Write>(
 ) -> CheckResult<()> {
     match remaining_args {
         [] => {}
-        [RawToken::Int(int)] => writeln!(output, "push<4b> {}", int)?,
-        [RawToken::Int(int), tail @ ..] => {
-            writeln!(output, "push<4b> {}", int)?;
-            push_args(output, tail)?;
+        [RawToken::Expr(Expr::SmallValue(value)), tail @ ..] => {
+            match value {
+                SmallValue::Byte(byte) => writeln!(output, "push.1b {}", byte)?,
+                SmallValue::Word(word) => writeln!(output, "push<2b> {}", word)?,
+                SmallValue::DWord(dword) => writeln!(output, "push<4b> {}", dword)?,
+                SmallValue::QWord(qword) => writeln!(output, "push<8b> {}", qword)?,
+            }
+            push_args(output, tail)?
         }
         _ => todo!(),
     }
