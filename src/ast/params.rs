@@ -8,25 +8,36 @@ pub struct Param<'source> {
     pub pattern: MatchPattern<'source>,
 }
 
+/// Called when on the opening bracket '[' of a function definition
+/// Thus always returns a Param with pattern == TypeExpr
 impl<'source> Parsable<'source> for Param<'source> {
     fn parse(parser: &mut Parser<'source>) -> Result<Self, ParsingError<'source>> {
         let param_name = match parser.current_token.as_ref() {
             Some(Ok(token)) => match token {
-                Token::Ident => Some(parser.current_slice),
+                Token::Ident => {
+                    let param_name = parser.current_slice;
+                    parser.advance();
+                    Some(param_name)
+                }
                 Token::Symbol(":") => None,
                 _ => panic!("Don't think that's allowed"),
             },
             _ => todo!("Handle error"),
         };
-        parser.advance();
+        parser.advance(); // Skip ':'
         let param_type = match parser.current_token.as_ref() {
             Some(Ok(token)) => match token {
-                Token::Ident => Some(parser.current_slice),
+                Token::Ident => {
+                    let param_type = parser.current_slice;
+                    parser.advance();
+                    Some(param_type)
+                }
                 Token::Symbol("]") => None,
                 _ => panic!("Don't think that's allowed"),
             },
             _ => todo!("Handle error"),
         };
+        parser.advance(); // Skip ']'
         Ok(Param {
             name: param_name,
             pattern: MatchPattern::TypeExpr {

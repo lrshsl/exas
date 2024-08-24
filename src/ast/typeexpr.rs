@@ -18,10 +18,13 @@ pub fn find_type<'source>(
 impl Parsable<'_> for Type {
     fn parse<'source>(parser: &mut Parser<'source>) -> Result<Type, ParsingError<'source>> {
         match parser.current_token {
-            Some(Ok(Token::Int(int))) => Ok(Type {
-                size: int as usize,
-                type_fn: None,
-            }),
+            Some(Ok(Token::Int(int))) => {
+                parser.advance();
+                Ok(Type {
+                    size: int as usize,
+                    type_fn: None,
+                })
+            }
             None => Err(ParsingError::AbruptEof(
                 "type",
                 parser.lexer.extras.clone(),

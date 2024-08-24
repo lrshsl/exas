@@ -26,7 +26,7 @@ pub enum Token<'source> {
     #[regex(r#""([^"\\]|\\["\\bnfrt]|u\p{hexdigit}{4})*""#)]
     String,
 
-    #[regex(r###"[^0-9a-zA-Z\p{whitespace}]"###)]
+    #[regex(r###"[^0-9a-zA-Z\p{whitespace}|]"###)]
     Symbol(&'source str),
 
     #[regex(r"\n", |lex| {
@@ -35,7 +35,7 @@ pub enum Token<'source> {
     })]
     Newline,
 
-    #[regex(r"|[^\n]*", logos::skip)]
+    #[regex(r"\|[^\n]*", logos::skip)]
     Comment,
 }
 
