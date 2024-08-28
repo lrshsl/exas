@@ -4,7 +4,7 @@ use crate::lexer::Token;
 
 use super::*;
 
-#[derive(Clone)]
+#[derive(Clone, PartialEq)]
 pub enum RawToken<'source> {
     Ident(Ident<'source>),
     Symbol(char),
@@ -13,10 +13,10 @@ pub enum RawToken<'source> {
 }
 
 impl CompTimeSize<'_> for RawToken<'_> {
-    fn number_bytes(&self, ctx: &ProgramContext) -> usize {
+    fn number_bytes(&self, ctx: &ProgramContext) -> ByteSize {
         match self {
             Self::Ident(_) => todo!(),
-            Self::Symbol(_) => 1,
+            Self::Symbol(_) => ByteSize::Exact(1),
             Self::Expr(expr) => expr.number_bytes(ctx),
         }
     }

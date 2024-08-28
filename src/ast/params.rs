@@ -8,6 +8,12 @@ pub struct Param<'source> {
     pub pattern: MatchPattern<'source>,
 }
 
+impl PartialEq for Param<'_> {
+    fn eq(&self, other: &Self) -> bool {
+        self.pattern == other.pattern
+    }
+}
+
 /// Called when on the opening bracket '[' of a function definition
 /// Thus always returns a Param with pattern == TypeExpr
 impl<'source> Parsable<'source> for Param<'source> {
@@ -48,10 +54,10 @@ impl<'source> Parsable<'source> for Param<'source> {
 }
 
 impl<'source> CompTimeSize<'source> for Param<'source> {
-    fn number_bytes(&self, ctx: &'source ProgramContext) -> usize {
+    fn number_bytes(&self, ctx: &'source ProgramContext) -> ByteSize {
         match &self.pattern {
             MatchPattern::RawToken(raw_token) => raw_token.number_bytes(ctx),
-            MatchPattern::TypeExpr { typename } => find_type(ctx, *typename).unwrap().size,
+            MatchPattern::TypeExpr { typename } => find_type(ctx, *typename).unwrap().size.clone(),
         }
     }
 }
@@ -66,10 +72,31 @@ impl std::fmt::Debug for Param<'_> {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum MatchPattern<'source> {
     RawToken(RawToken<'source>),
     TypeExpr { typename: Option<&'source str> },
+}
+
+impl MatchPattern<'_> {
+    pub fn matches_arg(&self, ctx: &ProgramContext<'_>, arg: &RawToken<'_>) -> bool {
+        match self {
+            Self::RawToken(raw_token) => raw_token == arg,
+            Self::TypeExpr { typename } => match find_type(ctx, *typename) {
+                Some(typeexpr::Type {
+                    type_fn: Some(type_fn),
+                    size: _,
+                }) => type_fn(arg),
+
+                Some(typeexpr::Type {
+                    type_fn: None,
+                    size: _,
+                }) => true,
+
+                None => unreachable!("Type should exist at this point"),
+            },
+        }
+    }
 }
 
 pub type ParamList<'source> = Vec<Param<'source>>;

@@ -13,9 +13,10 @@ impl std::fmt::Display for CheckError {
         match self {
             CheckError::CompileError(context, msg) => write!(
                 f,
-                "[Compile Error]<{file} {line}> {msg}",
+                "[Compile Error]<{file} {line}> {msg}\n\t\"{line_content}\"",
                 file = context.filename,
-                line = context.line
+                line = context.line,
+                line_content = context.line_content
             ),
             CheckError::EmitError(error) => write!(f, "{}", error),
         }

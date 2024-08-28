@@ -13,6 +13,12 @@ pub struct Assign<'source> {
     pub value: Rc<Expr<'source>>,
 }
 
+impl PartialEq for Assign<'_> {
+    fn eq(&self, _: &Self) -> bool {
+        false
+    }
+}
+
 impl<'source> AstNode<'source> for Assign<'source> {
     fn build_context(&self, ctx: &mut ProgramContext<'source>, scope_stack: &mut Vec<ScopeId>) {
         if let Expr::Type(type_) = self.value.as_ref() {
@@ -34,16 +40,20 @@ impl<'source> AstNode<'source> for Assign<'source> {
     ) -> CheckResult<()> {
         match self.value.deref() {
             Expr::FnDef(fn_def) => {
-                writeln!(output, "{}: ", self.name)?;
+                writeln!(output, "\n|| Function {name}\n{name}: ", name = self.name)?;
                 change_indentation(scope::IndentationChange::More);
                 fn_def.check_and_emit(output, ctx, scope_stack)?;
                 change_indentation(scope::IndentationChange::Less);
             }
             Expr::FnCall(fn_call) => {
-                push_args(output, &fn_call.args)?;
-                writeln!(output, "call {}", self.name)?;
+                fn_call.check_and_emit(output, ctx, scope_stack)?;
             }
-            Expr::Type(type_) => writeln!(output, "type {}b {}", type_.size, self.name)?,
+            Expr::Type(type_) => writeln!(
+                output,
+                "\n|| Type {type_name}\n{type_name} = type {size}",
+                type_name = self.name,
+                size = type_.size
+            )?,
             Expr::SmallValue(value) => {
                 writeln!(
                     output,

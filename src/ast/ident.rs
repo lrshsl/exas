@@ -2,7 +2,7 @@ use crate::ast::current_padding;
 
 use super::{AstNode, CheckResult, ProgramContext, ScopeId};
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Ident<'source>(pub &'source str);
 
 impl std::fmt::Display for Ident<'_> {

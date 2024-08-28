@@ -1,10 +1,10 @@
 use super::*;
 
-type TypeFn = fn(Expr) -> bool;
+type TypeFn = fn(&RawToken) -> bool;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Type {
-    pub size: usize,
+    pub size: ByteSize,
     pub type_fn: Option<TypeFn>,
 }
 
@@ -18,10 +18,11 @@ pub fn find_type<'source>(
 impl Parsable<'_> for Type {
     fn parse<'source>(parser: &mut Parser<'source>) -> Result<Type, ParsingError<'source>> {
         match parser.current_token {
+            // TODO: Add support for type ranges and type check fns
             Some(Ok(Token::Int(int))) => {
                 parser.advance();
                 Ok(Type {
-                    size: int as usize,
+                    size: ByteSize::Exact(int as usize),
                     type_fn: None,
                 })
             }

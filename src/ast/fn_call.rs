@@ -1,29 +1,73 @@
 use expr::SmallValue;
+use params::MatchPattern;
+use typeexpr::find_type;
 
 use super::*;
 use crate::errors::compile_error;
 
+pub fn resolve_arg_size(
+    ctx: &ProgramContext,
+    type_: &typeexpr::Type,
+    arg: &RawToken,
+) -> Result<usize, CheckError> {
+    match type_.size {
+        ByteSize::Exact(size) => Ok(size),
+        ByteSize::Range(ref param_range) => {
+            match arg.number_bytes(ctx) {
+                ByteSize::Exact(arg_size) if param_range.contains(&arg_size) => Ok(arg_size),
+                ByteSize::Range(arg_range) => {
+                    // Return smallest possible
+                    let first_common_point = param_range.start.max(arg_range.start);
+                    if param_range.contains(&first_common_point)
+                        && arg_range.contains(&first_common_point)
+                    {
+                        Ok(first_common_point)
+                    } else {
+                        compile_error(ctx.file_context.clone(), format!("Type size mismatch: no overlap between {arg_range:?} and {param_range:?}").to_string())
+                    }
+                }
+                // TODO: Makes sense?
+                ByteSize::Exact(arg_size) => compile_error(
+                    ctx.file_context.clone(),
+                    format!("Type size mismatch: {arg_size}b not in {param_range:?}").to_string(),
+                ),
+            }
+        }
+    }
+}
+
 pub fn push_args<Output: io::Write>(
     output: &mut Output,
-    remaining_args: &[RawToken],
+    ctx: &ProgramContext,
+    args: &[RawToken],
+    params: &[Param],
 ) -> CheckResult<()> {
-    match remaining_args {
-        [] => {}
-        [RawToken::Expr(Expr::SmallValue(value)), tail @ ..] => {
-            match value {
-                SmallValue::Byte(byte) => writeln!(output, "push.1b {}", byte)?,
-                SmallValue::Word(word) => writeln!(output, "push<2b> {}", word)?,
-                SmallValue::DWord(dword) => writeln!(output, "push<4b> {}", dword)?,
-                SmallValue::QWord(qword) => writeln!(output, "push<8b> {}", qword)?,
+    let number_bytes = params
+        .iter()
+        .zip(args)
+        .rev()
+        .map(|(param, arg)| match &param.pattern {
+            MatchPattern::RawToken(token) => {
+                let ByteSize::Exact(size) = token.number_bytes(ctx) else {
+                    unreachable!()
+                };
+                Ok(size)
             }
-            push_args(output, tail)?
-        }
-        _ => todo!(),
+            MatchPattern::TypeExpr { typename } => {
+                let type_ = find_type(ctx, *typename).unwrap();
+                resolve_arg_size(ctx, type_, arg)
+            }
+        });
+    // TODO: Properly handle errors
+    assert!(!number_bytes.clone().any(|e| e.is_err()));
+    assert_eq!(number_bytes.len(), args.len());
+    for (number_bytes, arg) in number_bytes.flatten().zip(args.iter().rev()) {
+        writeln!(output, "push {}b {:?}", number_bytes, arg)?;
     }
     Ok(())
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct FnCall<'source> {
     pub name: &'source str,
     pub args: Vec<RawToken<'source>>,
@@ -38,7 +82,7 @@ impl AstNode<'_> for FnCall<'_> {
         ctx: &ProgramContext<'_>,
         scope_stack: &mut Vec<ScopeId>,
     ) -> CheckResult<()> {
-        let _function_entry = match ctx.symbols.get(self.name) {
+        let function_entry = match ctx.symbols.get(self.name) {
             None => {
                 return compile_error(
                     ctx.file_context.clone(),
@@ -72,8 +116,40 @@ impl AstNode<'_> for FnCall<'_> {
                 }
             },
         };
-        // Todo: check signature
-        push_args(output, &self.args)?;
+        // Hope it's a function
+        let Expr::FnDef(fn_def) = function_entry.value.as_ref() else {
+            todo!("Found only a variable.. Probably should ignore those")
+        };
+        // Check signature
+        if !fn_def.signature.matches_args(ctx, &self.args) {
+            return compile_error(
+                ctx.file_context.clone(),
+                format!(
+                    "Function signature mismatch: {}\nArgs {actual:?} don't match. Best candidate is {expected:?}",
+                    self.name,
+                    actual = self.args,
+                    expected = fn_def.signature
+                )
+                .to_string(),
+            );
+        }
+        // How do I find the number of bytes?
+        // Either the args or the signature have the specific size
+        //
+        // f = fn [:Number] {},     | Fn def generic
+        // arg 1b = 5
+        // f arg,
+        //
+        // f = fn [:u8]
+        // f 7,                     | Fn call generic
+        //
+        writeln!(
+            output,
+            "\n{pad}| Function call: {name}",
+            name = self.name,
+            pad = current_padding()
+        )?;
+        push_args(output, ctx, &self.args, &fn_def.signature.params)?;
         writeln!(output, "{}call {}", current_padding(), self.name)?;
         Ok(())
     }

@@ -40,7 +40,7 @@ pub fn compile_error<T>(context: FileContext, msg: String) -> CheckResult<T> {
             line_content: context
                 .source
                 .lines()
-                .nth(context.line - 1)
+                .nth(context.line)
                 .expect("Not a valid source line")
                 .to_string(),
         },
@@ -53,4 +53,3 @@ pub struct SyntaxErrorContext {
     pub line: usize,
     pub line_content: String,
 }
-

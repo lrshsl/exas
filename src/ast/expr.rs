@@ -1,15 +1,16 @@
-use std::fmt;
+use std::{fmt, ops};
 
 use super::*;
 
 use super::assign::parse_assign;
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum SmallValue {
     Byte(u8),
     Word(u16),
     DWord(u32),
     QWord(u64),
+    Untyped(u64),
 }
 
 impl fmt::Display for SmallValue {
@@ -18,23 +19,41 @@ impl fmt::Display for SmallValue {
             SmallValue::Byte(val) => write!(f, "{:#02X}", val),
             SmallValue::Word(val) => write!(f, "{:#04X}", val),
             SmallValue::DWord(val) => write!(f, "{:#08X}", val),
-            SmallValue::QWord(val) => write!(f, "{:#016X}", val),
+            SmallValue::QWord(val) | SmallValue::Untyped(val) => write!(f, "{:#016X}", val),
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub enum ByteSize {
+    Exact(usize),
+    Range(ops::Range<usize>),
+}
+
+impl fmt::Display for ByteSize {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            ByteSize::Exact(val) => write!(f, "{}b", val),
+            ByteSize::Range(ops::Range { start, end }) => {
+                write!(f, "({start}..{end})b")
+            }
         }
     }
 }
 
 impl CompTimeSize<'_> for SmallValue {
-    fn number_bytes(&self, _: &ProgramContext) -> usize {
+    fn number_bytes(&self, _: &ProgramContext) -> ByteSize {
         match self {
-            Self::Byte(_) => 1,
-            Self::Word(_) => 2,
-            Self::DWord(_) => 4,
-            Self::QWord(_) => 8,
+            Self::Byte(_) => ByteSize::Exact(1),
+            Self::Word(_) => ByteSize::Exact(2),
+            Self::DWord(_) => ByteSize::Exact(4),
+            Self::QWord(_) => ByteSize::Exact(8),
+            Self::Untyped(_) => ByteSize::Range(1..8),
         }
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, PartialEq)]
 pub enum Expr<'source> {
     FnDef(FnDef<'source>),
     FnCall(FnCall<'source>),
@@ -69,15 +88,15 @@ impl std::fmt::Debug for Expr<'_> {
 }
 
 impl CompTimeSize<'_> for Expr<'_> {
-    fn number_bytes(&self, ctx: &ProgramContext) -> usize {
+    fn number_bytes(&self, ctx: &ProgramContext) -> ByteSize {
         match self {
             Self::FnDef(_) => unreachable!(),
             Self::FnCall(_) => todo!(), //fn_call.number_bytes(),
-            Self::Type(_) => 0,
+            Self::Type(_) => ByteSize::Exact(0),
             Self::Assign(_) => todo!(), //assign.number_bytes(),
             Self::SmallValue(value) => value.number_bytes(ctx),
-            Self::Bytes(bytes) => bytes.len(),
-            Self::StringSlice(slice) => slice.bytes().len(),
+            Self::Bytes(bytes) => ByteSize::Exact(bytes.len()),
+            Self::StringSlice(slice) => ByteSize::Exact(slice.bytes().len()),
         }
     }
 }

@@ -4,6 +4,7 @@ use crate::errors::{CheckError, CheckResult, ParsingError};
 use crate::lexer::{FileContext, Token};
 
 mod scope;
+use expr::ByteSize;
 pub(crate) use scope::ProgramContext;
 use scope::{current_padding, next_scope, Symbol};
 use scope::{reset_scope_and_indent, ScopeId};
@@ -53,7 +54,7 @@ pub trait Parsable<'source> {
 }
 
 pub trait CompTimeSize<'source> {
-    fn number_bytes(&self, ctx: &'source ProgramContext) -> usize;
+    fn number_bytes(&self, ctx: &'source ProgramContext) -> ByteSize;
 }
 
 #[derive(Debug)]

@@ -14,12 +14,25 @@ pub fn free_register() -> Register {
     return Register(0);
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct FnSignature<'source> {
     pub params: Vec<Param<'source>>,
 }
 
-#[derive(Debug, Clone)]
+impl FnSignature<'_> {
+    pub fn matches_args(&self, ctx: &ProgramContext, args: &Vec<RawToken>) -> bool {
+        if self.params.len() != args.len() {
+            false
+        } else {
+            self.params
+                .iter()
+                .zip(args.iter())
+                .all(|(param, arg)| param.pattern.matches_arg(ctx, arg))
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq)]
 pub struct FnDef<'source> {
     pub signature: FnSignature<'source>,
     pub body: ListContent<'source>,
@@ -30,16 +43,22 @@ fn stack_pop_remaining_parameters<Output: std::io::Write>(
     output: &mut Output,
     params: &Vec<Param>,
 ) -> CheckResult<()> {
-    for param in params {
+    for (i, param) in params.iter().enumerate() {
         match param.number_bytes(ctx) {
             //todo
-            _ => writeln!(
-                output,
-                "{}pop<{}b> -> {}       | argument",
-                current_padding(),
-                param.number_bytes(ctx),
-                free_register()
-            )?,
+            _ => {
+                write!(
+                    output,
+                    "{pad}pop {size} -> {reg}       | {i}th argument",
+                    pad = current_padding(),
+                    size = param.number_bytes(ctx),
+                    reg = free_register()
+                )?;
+                if let Some(name) = param.name {
+                    write!(output, ": {name}")?;
+                }
+                writeln!(output)?;
+            }
         }
     }
     Ok(())
@@ -58,8 +77,9 @@ impl<'source> AstNode<'source> for FnDef<'source> {
     ) -> CheckResult<()> {
         // TODO: pass first parameters through registers
         stack_pop_remaining_parameters(ctx, output, &self.signature.params)?;
-        writeln!(output, "{}ret\n", current_padding())?;
-        self.body.check_and_emit(output, ctx, scope_stack)
+        self.body.check_and_emit(output, ctx, scope_stack)?;
+        writeln!(output, "{}ret", current_padding())?;
+        Ok(())
     }
 }
 

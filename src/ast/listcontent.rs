@@ -2,7 +2,7 @@ use scope::change_indentation;
 
 use super::*;
 
-#[derive(Clone)]
+#[derive(Clone, PartialEq)]
 pub struct ListContent<'source> {
     pub elements: Vec<Expr<'source>>,
 }
