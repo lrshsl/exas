@@ -1,4 +1,3 @@
-use expr::SmallValue;
 use params::MatchPattern;
 use typeexpr::find_type;
 
@@ -42,27 +41,34 @@ pub fn push_args<Output: io::Write>(
     args: &[RawToken],
     params: &[Param],
 ) -> CheckResult<()> {
-    let number_bytes = params
-        .iter()
-        .zip(args)
-        .rev()
-        .map(|(param, arg)| match &param.pattern {
-            MatchPattern::RawToken(token) => {
-                let ByteSize::Exact(size) = token.number_bytes(ctx) else {
-                    unreachable!()
-                };
-                Ok(size)
-            }
-            MatchPattern::TypeExpr { typename } => {
-                let type_ = find_type(ctx, *typename).unwrap();
-                resolve_arg_size(ctx, type_, arg)
-            }
-        });
+    let number_bytes =
+        params
+            .iter()
+            .zip(args)
+            .rev()
+            .filter_map(|(param, arg)| match &param.pattern {
+                MatchPattern::RawToken(RawToken::Ident(_)) => None,
+                MatchPattern::RawToken(token) => {
+                    let ByteSize::Exact(size) = token.number_bytes(ctx) else {
+                        unreachable!()
+                    };
+                    Some(Ok((size, arg)))
+                }
+                MatchPattern::TypeExpr { typename } => {
+                    let type_ = find_type(ctx, *typename).unwrap();
+                    let size = match resolve_arg_size(ctx, type_, arg) {
+                        Ok(size) => size,
+                        Err(err) => return Some(Err(err)),
+                    };
+                    Some(Ok((size, arg)))
+                }
+            });
     // TODO: Properly handle errors
-    assert!(!number_bytes.clone().any(|e| e.is_err()));
-    assert_eq!(number_bytes.len(), args.len());
-    for (number_bytes, arg) in number_bytes.flatten().zip(args.iter().rev()) {
-        writeln!(output, "push {}b {:?}", number_bytes, arg)?;
+    for e in number_bytes {
+        let Ok((size, arg)) = e else {
+            return Err(e.unwrap_err());
+        };
+        writeln!(output, "push {}b {:?}", size, arg)?;
     }
     Ok(())
 }
@@ -82,53 +88,64 @@ impl AstNode<'_> for FnCall<'_> {
         ctx: &ProgramContext<'_>,
         scope_stack: &mut Vec<ScopeId>,
     ) -> CheckResult<()> {
-        let function_entry = match ctx.symbols.get(self.name) {
-            None => {
-                return compile_error(
-                    ctx.file_context.clone(),
-                    format!("Undefined function: {}", self.name).to_string(),
-                )
-            }
-            Some(global_matches) => match global_matches
-                .iter()
-                .filter(|f| scope_stack.contains(&f.scope))
-                .collect::<Vec<_>>()[..]
-            {
-                [one_match] => one_match,
-                [] => {
-                    return compile_error(
-                        ctx.file_context.clone(),
-                        format!(
-                            "Function not defined in this scope: {}, scope: {}",
-                            self.name,
-                            scope_stack.last().unwrap()
-                        ),
-                    )
-                }
-                [..] => {
-                    return compile_error(
-                        ctx.file_context.clone(),
-                        format!(
-                            "Function defined multiple times in this scope: {}",
-                            self.name
-                        ),
-                    )
-                }
-            },
+        // Find all symbols with that name
+        let Some(global_matches) = ctx.symbols.get(self.name) else {
+            return compile_error(
+                ctx.file_context.clone(),
+                format!("Function not found anywhere: {}", self.name).to_string(),
+            );
         };
-        // Hope it's a function
-        let Expr::FnDef(fn_def) = function_entry.value.as_ref() else {
-            todo!("Found only a variable.. Probably should ignore those")
-        };
-        // Check signature
-        if !fn_def.signature.matches_args(ctx, &self.args) {
+        // Filter out functions that are not in scope
+        let scope_matches = global_matches
+            .iter()
+            .filter(|f| scope_stack.contains(&f.scope));
+        if scope_matches.clone().next().is_none() {
             return compile_error(
                 ctx.file_context.clone(),
                 format!(
-                    "Function signature mismatch: {}\nArgs {actual:?} don't match. Best candidate is {expected:?}",
+                    "Function not defined in this scope: {}, scope: {}",
                     self.name,
+                    scope_stack.last().unwrap()
+                ),
+            );
+        }
+        // Retain only functions
+        let function_matches = scope_matches.filter_map(|f| match f.value.as_ref() {
+            Expr::FnDef(fn_def) => Some(fn_def),
+            _ => None,
+        });
+        let Some(first_fn_match) = function_matches.clone().next() else {
+            return compile_error(
+                ctx.file_context.clone(),
+                format!(
+                    "Function not found {name}: {name} exists in this scope, but is not callable",
+                    name = self.name
+                )
+                .to_string(),
+            );
+        };
+        // Check signature
+        let mut signature_matches =
+            function_matches.filter(|f| f.signature.matches_args(ctx, &self.args));
+        let Some(fn_def) = signature_matches.next() else {
+            return compile_error(
+                ctx.file_context.clone(),
+                format!(
+                    "Function signature mismatch: \"{name}\"\nArgs {actual:#?} don't match to any signature.\n\nNote: One candidate is \"{name}\" with signature:\n{expected:#?}",
+                    name = self.name,
                     actual = self.args,
-                    expected = fn_def.signature
+                    expected = first_fn_match.signature
+                )
+                .to_string(),
+            );
+        };
+        // Should only have one match
+        if signature_matches.next().is_some() {
+            return compile_error(
+                ctx.file_context.clone(),
+                format!(
+                    "Found two matching functions for {name} with the given arguments. Consider adding a ident to the function signature to distinguish them.",
+                    name = self.name,
                 )
                 .to_string(),
             );

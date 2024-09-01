@@ -11,7 +11,7 @@ pub struct FileContext<'source> {
 #[logos(extras = FileContext<'s>)]
 #[logos(skip r"[ \t\r\f]+")] // Ignore whitespace
 pub enum Token<'source> {
-    #[regex(r"[[:alpha:]][_[:alpha:][:digit:]]*")]
+    #[regex(r"[-[:alpha:][:digit:]]*")]
     Ident,
 
     #[regex(r"[0-9]+", |lex| lex.slice().parse::<u32>().expect("Wrong"))]

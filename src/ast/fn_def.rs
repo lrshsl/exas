@@ -1,3 +1,5 @@
+use params::MatchPattern;
+
 use crate::{ast::current_padding, parser::Parser};
 
 use super::*;
@@ -43,7 +45,11 @@ fn stack_pop_remaining_parameters<Output: std::io::Write>(
     output: &mut Output,
     params: &Vec<Param>,
 ) -> CheckResult<()> {
-    for (i, param) in params.iter().enumerate() {
+    for (i, param) in params
+        .iter()
+        .filter(|a| !matches!(a.pattern, MatchPattern::RawToken(RawToken::Ident(_))))
+        .enumerate()
+    {
         match param.number_bytes(ctx) {
             //todo
             _ => {
