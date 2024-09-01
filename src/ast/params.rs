@@ -1,5 +1,7 @@
 use typeexpr::{find_type, TypeExpr};
 
+use crate::errors::compile_error;
+
 use super::*;
 
 #[derive(Clone)]
@@ -57,7 +59,12 @@ impl<'source> CompTimeSize<'source> for Param<'source> {
     fn number_bytes(&self, ctx: &'source ProgramContext) -> ByteSize {
         match &self.pattern {
             MatchPattern::RawToken(raw_token) => raw_token.number_bytes(ctx),
-            MatchPattern::TypeExpr { typename } => find_type(ctx, *typename).unwrap().size.clone(),
+            MatchPattern::TypeExpr { typename } => {
+                let Some(type_) = find_type(ctx, *typename) else {
+                    panic!("Could not find type: {typename:?}");
+                };
+                type_.size.clone()
+            }
         }
     }
 }

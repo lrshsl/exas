@@ -1,0 +1,16 @@
+
+Degrees = type 2,		| two bytes
+
+turn = fn 3d [:Degrees] [:Degrees] { },
+turn = fn 2d [:Degrees] { },
+
+turn 2d 9,
+
+
+turn 3d 3 0,
+
+turn 3d
+	80
+	15,
+
+

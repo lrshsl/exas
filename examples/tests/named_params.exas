@@ -1,0 +1,5 @@
+deg = type 3,
+
+turn = fn [what: deg] [how_much: deg] {},
+
+turn 3 90,
