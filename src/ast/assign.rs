@@ -1,15 +1,10 @@
-use fn_call::push_args;
-use scope::change_indentation;
+use std::{io, ops::Deref, rc::Rc};
 
 use super::*;
-use std::rc::Rc;
-use std::{io, ops::Deref};
-
-use super::{AstNode, Expr, ProgramContext, ScopeId, Symbol};
 
 #[derive(Debug, Clone)]
 pub struct Assign<'source> {
-    pub name: &'source str,
+    pub name:  &'source str,
     pub value: Rc<Expr<'source>>,
 }
 
@@ -41,9 +36,9 @@ impl<'source> AstNode<'source> for Assign<'source> {
         match self.value.deref() {
             Expr::FnDef(fn_def) => {
                 writeln!(output, "\n|| Function {name}\n{name}: ", name = self.name)?;
-                change_indentation(scope::IndentationChange::More);
+                change_indentation(IndentationChange::More);
                 fn_def.check_and_emit(output, ctx, scope_stack)?;
-                change_indentation(scope::IndentationChange::Less);
+                change_indentation(IndentationChange::Less);
             }
             Expr::FnCall(fn_call) => {
                 fn_call.check_and_emit(output, ctx, scope_stack)?;

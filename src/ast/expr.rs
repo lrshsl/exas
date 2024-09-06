@@ -1,8 +1,6 @@
-use std::{fmt, ops};
+use std::fmt;
 
 use super::*;
-
-use super::assign::parse_assign;
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum SmallValue {
@@ -20,23 +18,6 @@ impl fmt::Display for SmallValue {
             SmallValue::Word(val) => write!(f, "{:#04X}", val),
             SmallValue::DWord(val) => write!(f, "{:#08X}", val),
             SmallValue::QWord(val) | SmallValue::Untyped(val) => write!(f, "{:#016X}", val),
-        }
-    }
-}
-
-#[derive(Debug, Clone, PartialEq)]
-pub enum ByteSize {
-    Exact(usize),
-    Range(ops::Range<usize>),
-}
-
-impl fmt::Display for ByteSize {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            ByteSize::Exact(val) => write!(f, "{}b", val),
-            ByteSize::Range(ops::Range { start, end }) => {
-                write!(f, "({start}..{end})b")
-            }
         }
     }
 }
@@ -91,9 +72,9 @@ impl CompTimeSize<'_> for Expr<'_> {
     fn number_bytes(&self, ctx: &ProgramContext) -> ByteSize {
         match self {
             Self::FnDef(_) => unreachable!(),
-            Self::FnCall(_) => todo!(), //fn_call.number_bytes(),
+            Self::FnCall(_) => todo!(), // fn_call.number_bytes(),
             Self::Type(_) => ByteSize::Exact(0),
-            Self::Assign(_) => todo!(), //assign.number_bytes(),
+            Self::Assign(_) => todo!(), // assign.number_bytes(),
             Self::SmallValue(value) => value.number_bytes(ctx),
             Self::Bytes(bytes) => ByteSize::Exact(bytes.len()),
             Self::StringSlice(slice) => ByteSize::Exact(slice.bytes().len()),

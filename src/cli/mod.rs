@@ -1,6 +1,6 @@
-use clap::{arg, builder::TypedValueParser as _, command, Args, Parser as ArgParser, Subcommand};
 use std::path::PathBuf;
 
+use clap::{arg, builder::TypedValueParser as _, command, Args, Parser as ArgParser, Subcommand};
 pub use verbosity::Verbosity;
 
 mod verbosity;

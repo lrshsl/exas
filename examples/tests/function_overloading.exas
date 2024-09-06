@@ -1,10 +1,43 @@
 
-Degrees = type 2,		| two bytes
+Degrees  = type 2,			| two bytes
+Radians  = type 4,			| four bytes
+Distance = type 4,			| four bytes
+
+
+|- The following functions should all be distinct -|
 
 turn = fn 3d [:Degrees] [:Degrees] { },
+
+| Different number parameters (name should not matter)
+turn = fn 3d [deg: Degrees] {
+	|turn 3d (deg) (deg),
+},
+
+| Different identifier (type should not matter (not yet))
 turn = fn 2d [:Degrees] { },
+turn = fn 2d [:Radians] rad { },
+
+| Default to '2d' and degrees with one argument
+turn = fn [rad: Degrees] rad {
+	|turn 2d (rad),
+},
+
+| And to '3d' with two
+turn = fn [x: Degrees] [y: Degrees] rad {
+	|turn 3d (x) (y),
+},
+
+| Different name
+forward = fn [s: Distance] { }
+
+walk = fn [s: Distance] in [direction: Radians] {
+	|turn 2d (rad) rad,
+	|forward (s),
+},
+
 
 turn 2d 9,
+turn 2d 1 rad,
 
 
 turn 3d 3 0,
@@ -14,3 +47,4 @@ turn 3d
 	15,
 
 
+turn 90,

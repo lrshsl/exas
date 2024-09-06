@@ -1,8 +1,7 @@
 use std::io;
 
-use crate::lexer::FileContext;
-
 use super::{CheckError, CheckResult, ParsingError};
+use crate::lexer::FileContext;
 
 pub type CompileResult<'source, T> = Result<T, CompileError<'source>>;
 

@@ -1,7 +1,3 @@
-use expr::SmallValue;
-
-use crate::lexer::Token;
-
 use super::*;
 
 #[derive(Clone, PartialEq)]
@@ -15,7 +11,7 @@ pub enum RawToken<'source> {
 impl CompTimeSize<'_> for RawToken<'_> {
     fn number_bytes(&self, ctx: &ProgramContext) -> ByteSize {
         match self {
-            Self::Ident(_) => todo!(),
+            Self::Ident(_) => ByteSize::AnySize,
             Self::Symbol(_) => ByteSize::Exact(1),
             Self::Expr(expr) => expr.number_bytes(ctx),
         }

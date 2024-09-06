@@ -3,8 +3,8 @@ use logos::{Logos, Skip};
 #[derive(Debug, Clone)]
 pub struct FileContext<'source> {
     pub filename: String,
-    pub source: &'source str,
-    pub line: usize,
+    pub source:   &'source str,
+    pub line:     usize,
 }
 
 #[derive(Logos, Debug, PartialEq, Clone)]
@@ -50,14 +50,11 @@ mod tests {
             set y = 4,
             print x,
             "##;
-        let mut lex = Token::lexer_with_extras(
+        let mut lex = Token::lexer_with_extras(source, FileContext {
+            filename: "test_set_print".to_string(),
             source,
-            FileContext {
-                filename: "test_set_print".to_string(),
-                source,
-                line: 1,
-            },
-        );
+            line: 1,
+        });
         assert_eq!(lex.next(), Some(Ok(Token::Ident)));
         assert_eq!(lex.slice(), "set");
         assert_eq!(lex.next(), Some(Ok(Token::Ident)));
@@ -85,14 +82,11 @@ mod tests {
         let source = r##"
             a - < > *  / ,.? :,
             "##;
-        let mut lex = Token::lexer_with_extras(
+        let mut lex = Token::lexer_with_extras(source, FileContext {
+            filename: "test_symbols".to_string(),
             source,
-            FileContext {
-                filename: "test_symbols".to_string(),
-                source,
-                line: 1,
-            },
-        );
+            line: 1,
+        });
         assert_eq!(lex.next(), Some(Ok(Token::Ident)));
         assert_eq!(lex.next(), Some(Ok(Token::Symbol("-"))));
         assert_eq!(lex.next(), Some(Ok(Token::Symbol("<"))));
@@ -116,14 +110,11 @@ mod tests {
 
             let x -> y,
             "##;
-        let mut lex = Token::lexer_with_extras(
+        let mut lex = Token::lexer_with_extras(source, FileContext {
+            filename: "test3".to_string(),
             source,
-            FileContext {
-                filename: "test3".to_string(),
-                source,
-                line: 1,
-            },
-        );
+            line: 1,
+        });
         assert_eq!(lex.next(), Some(Ok(Token::Ident)));
         assert_eq!(lex.slice(), "echo");
         assert_eq!(lex.next(), Some(Ok(Token::String)));

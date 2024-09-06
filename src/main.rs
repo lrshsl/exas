@@ -1,10 +1,12 @@
 #![feature(type_alias_impl_trait)]
 #![feature(trait_alias)]
 
-use std::collections::HashMap;
-use std::fs;
-use std::io::{self, Read, Write};
-use std::path::PathBuf;
+use std::{
+    collections::HashMap,
+    fs,
+    io::{self, Read, Write},
+    path::PathBuf,
+};
 
 use ast::{Ast, ProgramContext};
 use clap::Parser as _;
@@ -114,7 +116,7 @@ fn compile<'source>(
         if cli.verbosity >= Verbosity::Info {
             println!("Emitting symbols to {}", path.display());
         }
-        write!(symbols_file, "{:#?}", program_ctx)?;
+        write!(symbols_file, "{:#?}", program_ctx.symbols)?;
     }
 
     // ==============  Expand  ================ //

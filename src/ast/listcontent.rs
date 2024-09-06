@@ -1,5 +1,3 @@
-use scope::change_indentation;
-
 use super::*;
 
 #[derive(Clone, PartialEq)]

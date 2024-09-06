@@ -1,80 +1,47 @@
-use std::io;
+pub use ast::Ast;
+pub use ast_util::scope::ProgramContext;
 
-use crate::errors::{CheckError, CheckResult, ParsingError};
-use crate::lexer::{FileContext, Token};
+pub(self) use crate::{
+    errors::{compile_error, CheckError, CheckResult, ParsingError},
+    lexer::{FileContext, Token},
+    parser::{Parsable, Parser},
+};
 
-mod scope;
-use expr::ByteSize;
-pub(crate) use scope::ProgramContext;
-use scope::{current_padding, next_scope, Symbol};
-use scope::{reset_scope_and_indent, ScopeId};
+mod ast;
+
+mod ast_util;
+pub(self) use ast_util::{
+    register::{free_register, Register},
+    scope::{
+        change_indentation, current_padding, next_scope, reset_scope_and_indent, IndentationChange,
+        ScopeId, Symbol,
+    },
+    ByteSize,
+};
+
+mod ast_traits;
+pub(self) use ast_traits::{AstNode, CompTimeSize};
 
 mod expr;
-pub use expr::Expr;
+pub(self) use expr::{Expr, SmallValue};
 
 mod raw_token;
-pub use raw_token::RawToken;
+pub(self) use raw_token::RawToken;
 
 mod ident;
-pub use ident::Ident;
+pub(self) use ident::Ident;
 
 mod assign;
-pub use assign::Assign;
+pub(self) use assign::{parse_assign, Assign};
 
 mod fn_call;
-pub use fn_call::{ArgumentList, FnCall};
+pub(self) use fn_call::{argument_list::ArgumentList, fn_call::FnCall};
 
 mod fn_def;
-pub use fn_def::FnDef;
-
-mod params;
-pub use params::{Param, ParamList};
-
-mod typeexpr;
+pub(self) use fn_def::{FnDef, FnSignature, Param, ParamExpr, ParamList};
 
 mod listcontent;
-pub use listcontent::ListContent;
+pub(self) use listcontent::ListContent;
 
-use crate::parser::Parser;
-
-pub trait AstNode<'source> {
-    fn build_context(&self, ctx: &mut ProgramContext<'source>, scope_stack: &mut Vec<ScopeId>);
-    fn check_and_emit<Output: io::Write>(
-        &self,
-        output: &mut Output,
-        ctx: &ProgramContext<'source>,
-        scope_stack: &mut Vec<ScopeId>,
-    ) -> CheckResult<()>;
-}
-
-pub trait Parsable<'source> {
-    fn parse(parser: &mut Parser<'source>) -> Result<Self, ParsingError<'source>>
-    where
-        Self: Sized;
-}
-
-pub trait CompTimeSize<'source> {
-    fn number_bytes(&self, ctx: &'source ProgramContext) -> ByteSize;
-}
-
-#[derive(Debug)]
-pub struct Ast<'source> {
-    pub program: ListContent<'source>,
-}
-
-impl<'source> Ast<'source> {
-    pub fn build_context(&self, ctx: &mut ProgramContext<'source>) {
-        reset_scope_and_indent();
-        self.program.build_context(ctx, &mut vec![next_scope()]);
-    }
-
-    pub fn check_and_emit<Output: std::io::Write>(
-        &self,
-        output: &mut Output,
-        ctx: &ProgramContext,
-    ) -> CheckResult<()> {
-        reset_scope_and_indent();
-        self.program
-            .check_and_emit(output, ctx, &mut vec![next_scope()])
-    }
-}
+mod typeexpr;
+pub(self) use typeexpr::{find_type, Type, TypeFn};

@@ -1,18 +1,9 @@
 use super::*;
 
-type TypeFn = fn(&RawToken) -> bool;
-
 #[derive(Debug, Clone, PartialEq)]
 pub struct Type {
-    pub size: ByteSize,
+    pub size:    ByteSize,
     pub type_fn: Option<TypeFn>,
-}
-
-pub fn find_type<'source>(
-    ctx: &'source ProgramContext,
-    typename: Option<&str>,
-) -> Option<&'source Type> {
-    ctx.types.get(typename?)
 }
 
 impl Parsable<'_> for Type {
@@ -22,7 +13,7 @@ impl Parsable<'_> for Type {
             Some(Ok(Token::Int(int))) => {
                 parser.advance();
                 Ok(Type {
-                    size: ByteSize::Exact(int as usize),
+                    size:    ByteSize::Exact(int as usize),
                     type_fn: None,
                 })
             }
@@ -43,14 +34,5 @@ impl Parsable<'_> for Type {
                 line = parser.lexer.extras.line
             ))),
         }
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct TypeExpr;
-
-impl Parsable<'_> for TypeExpr {
-    fn parse<'source>(parser: &mut Parser<'source>) -> Result<TypeExpr, ParsingError<'source>> {
-        todo!()
     }
 }

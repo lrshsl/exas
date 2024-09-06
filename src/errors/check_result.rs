@@ -1,5 +1,6 @@
-use super::SyntaxErrorContext;
 use std::io;
+
+use super::SyntaxErrorContext;
 
 pub type CheckResult<T> = Result<T, CheckError>;
 

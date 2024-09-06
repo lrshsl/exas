@@ -21,6 +21,7 @@ impl std::fmt::Display for Verbosity {
 
 impl std::str::FromStr for Verbosity {
     type Err = String;
+
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
             "error" => Ok(Self::Error),
