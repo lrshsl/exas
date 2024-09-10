@@ -10,7 +10,13 @@ impl Param<'_> {
     pub fn matches_arg(&self, ctx: &ProgramContext<'_>, arg: &RawToken<'_>) -> bool {
         match self {
             Param::LiteralMatcher(raw_token) => arg == raw_token,
-            Param::ParamExpr(param_expr) => param_expr.matches_arg(ctx, arg),
+            Param::ParamExpr(param_expr) => {
+                if let RawToken::Expr(expr) = arg {
+                    param_expr.matches_arg(ctx, expr)
+                } else {
+                    false
+                }
+            }
         }
     }
 }

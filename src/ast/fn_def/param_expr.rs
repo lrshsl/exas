@@ -27,7 +27,7 @@ impl<'source> CompTimeSize<'source> for ParamExpr<'source> {
 }
 
 impl ParamExpr<'_> {
-    pub fn matches_arg(&self, ctx: &ProgramContext<'_>, arg: &RawToken<'_>) -> bool {
+    pub fn matches_arg(&self, ctx: &ProgramContext<'_>, arg: &Expr<'_>) -> bool {
         match self.typename {
             Some(typename) => match find_type(ctx, typename) {
                 Some(typeexpr::Type { type_fn, size }) => {

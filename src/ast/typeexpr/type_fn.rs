@@ -1,3 +1,3 @@
 use super::*;
 
-pub type TypeFn = fn(&RawToken) -> bool;
+pub type TypeFn = fn(&Expr) -> bool;
