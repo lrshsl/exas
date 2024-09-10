@@ -167,7 +167,7 @@ impl<'source> Parsable<'source> for Expr<'source> {
             Token::Int(val) => {
                 let val = *val;
                 parser.advance();
-                Ok(Expr::SmallValue(SmallValue::DWord(val)))
+                Ok(Expr::SmallValue(SmallValue::Untyped(val.into())))
             }
             Token::String => {
                 let strval = parser.current_slice;

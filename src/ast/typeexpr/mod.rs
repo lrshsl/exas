@@ -8,4 +8,3 @@ mod type_fn;
 pub use type_fn::TypeFn;
 
 pub(self) use super::*;
-

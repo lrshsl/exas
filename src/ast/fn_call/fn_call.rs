@@ -70,13 +70,18 @@ impl AstNode<'_> for FnCall<'_> {
             );
         };
         // Should only have one match
-        if signature_matches.next().is_some() {
+        if let Some(second_fn_def) = signature_matches.next() {
             return compile_error(
                 ctx.file_context.clone(),
                 format!(
-                    "Found two matching functions for {name} with the given arguments. Consider \
-                     adding a ident to the function signature to distinguish them.",
+                    "Found two matching functions for \"{name}\" with the given \
+                     arguments:\n\nArguments: {args:?}\n\n| The following function definitions \
+                     match:\n{fn_sig1:#?}\n| as well as:\n{fn_sig2:#?}\n| Consider adding a ident \
+                     to the function signature to distinguish them.",
                     name = self.name,
+                    args = self.args,
+                    fn_sig1 = fn_def.signature,
+                    fn_sig2 = second_fn_def.signature,
                 )
                 .to_string(),
             );
@@ -90,6 +95,8 @@ impl AstNode<'_> for FnCall<'_> {
         //
         // f = fn [:u8]
         // f 7,                     | Fn call generic
+        //
+        // @see ByteSize::overlap(..)
         //
         writeln!(
             output,

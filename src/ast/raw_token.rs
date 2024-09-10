@@ -32,7 +32,7 @@ impl<'source> RawToken<'source> {
     pub fn from_token(token: &Token, slice: &'source str) -> Self {
         match token {
             Token::Ident => RawToken::Ident(Ident(slice)),
-            Token::Int(val) => RawToken::Expr(Expr::SmallValue(SmallValue::DWord(*val))),
+            Token::Int(val) => RawToken::Expr(Expr::SmallValue(SmallValue::Untyped(*val as u64))),
             _ => {
                 assert_eq!(slice.len(), 1);
                 RawToken::Symbol(slice.chars().next().unwrap())
