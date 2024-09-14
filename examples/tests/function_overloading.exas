@@ -11,21 +11,21 @@ turn = fn 3d [:Degrees] [:Degrees] { },
 | Different number parameters (name should not matter)
 turn = fn 3d [deg: Degrees] {
 	|turn 3d (deg) (deg),
-},
+}
 
 | Different identifier (type should not matter (not yet))
-turn = fn 2d [:Degrees] { },
-turn = fn 2d [:Radians] rad { },
+turn = fn 2d [:Degrees] { }
+turn = fn 2d [:Radians] rad { }
 
 | Default to '2d' and degrees with one argument
 turn = fn [rad: Degrees] rad {
 	|turn 2d (rad),
-},
+}
 
 | And to '3d' with two
 turn = fn [x: Degrees] [y: Degrees] rad {
 	|turn 3d (x) (y),
-},
+}
 
 | Different name
 forward = fn [s: Distance] { }
@@ -33,7 +33,7 @@ forward = fn [s: Distance] { }
 walk = fn [s: Distance] in [direction: Radians] {
 	|turn 2d (rad) rad,
 	|forward (s),
-},
+}
 
 
 turn 2d 9,
@@ -48,3 +48,5 @@ turn 3d
 
 
 |turn 90,  | -> raises an error
+
+walk 40 in 2,

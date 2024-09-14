@@ -11,7 +11,7 @@ impl<'source> Ast<'source> {
         self.program.build_context(ctx, &mut vec![next_scope()]);
     }
 
-    pub fn check_and_emit<Output: std::io::Write>(
+    pub fn expand_clayer<Output: std::io::Write>(
         &self,
         output: &mut Output,
         ctx: &ProgramContext,

@@ -10,7 +10,7 @@ use std::{
 
 use ast::{Ast, ProgramContext};
 use clap::Parser as _;
-use cli::{BuildArgs, Cli, CliSubCommand, Verbosity};
+use cli::{Cli, CliSubCommand, ExpansionArgs, Verbosity};
 use errors::{CompileResult, ParsingError};
 use lexer::{FileContext, Token};
 use logos::Logos;
@@ -19,6 +19,7 @@ use parser::Parser;
 mod ast;
 mod cli;
 mod errors;
+mod layers;
 mod lexer;
 mod parser;
 
@@ -26,7 +27,7 @@ fn main() {
     let cli = Cli::parse();
 
     match &cli.command {
-        CliSubCommand::Build(ref build_args) => build(&cli, build_args),
+        CliSubCommand::Expand(ref build_args) => build(&cli, build_args),
         CliSubCommand::Run(ref build_args) => {
             build(&cli, build_args);
             todo!("And then run")
@@ -34,7 +35,7 @@ fn main() {
     }
 }
 
-fn build(cli: &Cli, build_args: &BuildArgs) {
+fn build(cli: &Cli, build_args: &ExpansionArgs) {
     let mut source = String::new();
     let compilation_result = match build_args.input_files.as_deref() {
         None => {
@@ -70,7 +71,7 @@ fn compile<'source>(
     name: &'source str,
     source: &'source str,
     cli: &Cli,
-    build_args: &BuildArgs,
+    build_args: &ExpansionArgs,
 ) -> CompileResult<'source, ()> {
     let file_context = FileContext {
         filename: name.to_string(),
@@ -119,23 +120,32 @@ fn compile<'source>(
         write!(symbols_file, "{:#?}", program_ctx.symbols)?;
     }
 
-    // ==============  Expand  ================ //
+    // ===========  Expand CL -> AL  ========== //
     let result = match build_args.output {
         Some(ref path) => {
             let mut output_file = fs::File::create(path)?;
             if cli.verbosity >= Verbosity::Info {
                 println!("Emitting to {}", path.display());
             }
-            ast.check_and_emit(&mut output_file, &program_ctx)
+            ast.expand_clayer(&mut output_file, &program_ctx)
         }
         None => {
             let mut output_file = io::stdout().lock();
             if cli.verbosity >= Verbosity::Info {
                 println!("Emitting to stdout");
             }
-            ast.check_and_emit(&mut output_file, &program_ctx)
+            ast.expand_clayer(&mut output_file, &program_ctx)
         }
     };
+    if let Err(e) = result {
+        println!("\n{}", e);
+        return Ok(());
+    } else {
+        println!("\nNo errors :)");
+    }
+
+    // ===========  Expand AL -> HL  ========== //
+    // let result =
 
     // ==========  Compiler Output  =========== //
     if let Err(e) = result {
