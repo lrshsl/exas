@@ -26,17 +26,20 @@ pub enum Token<'source> {
     #[regex(r#""([^"\\]|\\["\\bnfrt]|u\p{hexdigit}{4})*""#)]
     String,
 
-    #[regex(r###"[^0-9a-zA-Z\p{whitespace}|]"###)]
-    Symbol(&'source str),
-
     #[regex(r"\n", |lex| {
         lex.extras.line += 1;
         Skip
     })]
     Newline,
 
-    #[regex(r"\|[^\n]*", logos::skip)]
+    #[regex(r"\|\|[^\n]*\|\|", logos::skip, priority = 3)]
+    DocComment,
+
+    #[regex(r"\|[^\n|]*", logos::skip, priority = 2)]
     Comment,
+
+    #[regex(r###"[^0-9a-zA-Z\p{whitespace}|]"###)]
+    Symbol(&'source str),
 }
 
 #[cfg(test)]
@@ -105,7 +108,7 @@ mod tests {
     fn all_symbols() {
         let source = r##"
             echo "hello",
-            is .. x > y || .. < y ?
+            is .. x > y or .. < y ?
                 : "hello",
 
             let x -> y,
@@ -130,8 +133,8 @@ mod tests {
         assert_eq!(lex.next(), Some(Ok(Token::Symbol(">"))));
         assert_eq!(lex.next(), Some(Ok(Token::Ident)));
         assert_eq!(lex.slice(), "y");
-        assert_eq!(lex.next(), Some(Ok(Token::Symbol("|"))));
-        assert_eq!(lex.next(), Some(Ok(Token::Symbol("|"))));
+        assert_eq!(lex.next(), Some(Ok(Token::Ident)));
+        assert_eq!(lex.slice(), "or");
         assert_eq!(lex.next(), Some(Ok(Token::Symbol("."))));
         assert_eq!(lex.next(), Some(Ok(Token::Symbol("."))));
         assert_eq!(lex.next(), Some(Ok(Token::Symbol("<"))));

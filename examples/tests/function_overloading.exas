@@ -18,13 +18,13 @@ turn = fn 2d [:Degrees] { }
 turn = fn 2d [:Radians] rad { }
 
 | Default to '2d' and degrees with one argument
-turn = fn [rad: Degrees] rad {
-	|turn 2d (rad),
+turn = fn [deg: Degrees] deg {
+	|turn 2d [deg],
 }
 
 | And to '3d' with two
 turn = fn [x: Degrees] [y: Degrees] rad {
-	|turn 3d (x) (y),
+	|turn 3d [x] [y],
 }
 
 | Different name
@@ -50,3 +50,5 @@ turn 3d
 |turn 90,  | -> raises an error
 
 walk 40 in 2,
+
+| vim: ft=exas
