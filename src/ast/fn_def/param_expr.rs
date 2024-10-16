@@ -48,7 +48,7 @@ impl<'source> Parsable<'source> for ParamExpr<'source> {
     fn parse(parser: &mut Parser<'source>) -> Result<Self, ParsingError<'source>> {
         let name = match parser.current_token.as_ref() {
             Some(Ok(token)) => match token {
-                Token::Symbol(":") | Token::Symbol("]") => None,
+                Token::Symbol(':') | Token::Symbol(']') => None,
                 Token::Ident => {
                     let param_name = Some(parser.current_slice);
                     parser.advance();
@@ -60,8 +60,8 @@ impl<'source> Parsable<'source> for ParamExpr<'source> {
         };
 
         let typename = match parser.current_token.as_ref() {
-            Some(Ok(Token::Symbol("]"))) => None,
-            Some(Ok(Token::Symbol(":"))) => {
+            Some(Ok(Token::Symbol(']'))) => None,
+            Some(Ok(Token::Symbol(':'))) => {
                 parser.advance(); // Skip ':'
                 match parser.current_token.as_ref() {
                     Some(Ok(Token::Ident)) => {

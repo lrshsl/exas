@@ -131,7 +131,7 @@ impl<'source> Parsable<'source> for Expr<'source> {
                     "expr",
                     parser.lexer.extras.clone(),
                     vec![
-                        Token::Symbol("("),
+                        Token::Symbol('('),
                         Token::Ident,
                         Token::Int(0),
                         Token::String,
@@ -141,7 +141,7 @@ impl<'source> Parsable<'source> for Expr<'source> {
             }
         };
         match token {
-            Token::Symbol("(") => {
+            Token::Symbol('(') => {
                 parser.advance();
                 Expr::parse(parser)
             }
@@ -149,7 +149,7 @@ impl<'source> Parsable<'source> for Expr<'source> {
                 let ident = parser.current_slice;
                 parser.advance();
                 match parser.current_token {
-                    Some(Ok(Token::Symbol("="))) => {
+                    Some(Ok(Token::Symbol('='))) => {
                         parser.advance();
                         Ok(parse_assign(parser, ident)?)
                     }

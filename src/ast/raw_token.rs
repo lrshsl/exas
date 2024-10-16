@@ -43,21 +43,17 @@ impl<'source> RawToken<'source> {
 
 impl<'source> Parsable<'source> for RawToken<'source> {
     fn parse(parser: &mut Parser<'source>) -> Result<RawToken<'source>, ParsingError<'source>> {
-        match parser.current_token.as_ref() {
+        match parser.current_token {
             Some(Ok(Token::String)) => {
                 Ok(RawToken::from_token(&Token::String, parser.current_slice))
             }
-            Some(Ok(Token::Int(val))) => Ok(RawToken::from_token(
-                &Token::Int(*val),
-                parser.current_slice,
-            )),
+            Some(Ok(Token::Int(val))) => {
+                Ok(RawToken::from_token(&Token::Int(val), parser.current_slice))
+            }
             Some(Ok(Token::Ident)) => Ok(RawToken::Ident(Ident(parser.current_slice))),
             Some(Ok(Token::KeywordFn)) => Ok(RawToken::Ident(Ident("fn"))),
-            Some(Ok(Token::Symbol("("))) => Ok(RawToken::Expr(Expr::parse(parser)?)),
-            Some(Ok(Token::Symbol(symbol))) => {
-                assert_eq!(symbol.len(), 1, "Symbol should be a single character");
-                Ok(RawToken::Symbol(symbol.chars().next().unwrap()))
-            }
+            Some(Ok(Token::Symbol('('))) => Ok(RawToken::Expr(Expr::parse(parser)?)),
+            Some(Ok(Token::Symbol(symbol))) => Ok(RawToken::Symbol(symbol)),
             Some(Err(())) => Err(ParsingError::TokenError(format!(
                 "Lexer error in {file}@{line}",
                 file = parser.lexer.extras.filename,
@@ -71,11 +67,10 @@ impl<'source> Parsable<'source> for RawToken<'source> {
                     Token::Int(0),
                     Token::Ident,
                     Token::KeywordFn,
-                    Token::Symbol("("),
-                    Token::Symbol("<AnySymbol>"),
+                    Token::Symbol('('),
                 ],
             )),
-            other => panic!("Impossible: {other:?}"),
+            ref other => panic!("Impossible: {other:?}"),
         }
     }
 }

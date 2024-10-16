@@ -7,23 +7,23 @@ impl<'source> Parsable<'source> for ParamList<'source> {
         let mut params = Vec::new();
         while let Some(Ok(token)) = parser.current_token.as_ref() {
             match token {
-                Token::Symbol("{") => {
+                Token::Symbol('{') => {
                     parser.advance();
                     break;
                 }
-                Token::Symbol(",") => {
+                Token::Symbol(',') => {
                     return Err(ParsingError::UnexpectedToken(
                         "params",
                         parser.lexer.extras.clone(),
                         token.clone(),
-                        vec![Token::Symbol("{")],
+                        vec![Token::Symbol('{')],
                     ))
                 }
-                Token::Symbol("[") => {
+                Token::Symbol('[') => {
                     parser.advance(); // Skip '['
                     params.push(Param::ParamExpr(ParamExpr::parse(parser)?))
                 }
-                token => {
+                ref token => {
                     params.push(Param::LiteralMatcher(RawToken::from_token(
                         token,
                         parser.lexer.slice(),

@@ -1,5 +1,3 @@
-use super::*;
-
 pub struct Register(u8);
 
 impl std::fmt::Display for Register {

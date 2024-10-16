@@ -1,13 +1,8 @@
 use crate::lexer::{FileContext, Token};
 
 pub enum ParsingError<'source> {
-    AbruptEof(&'source str, FileContext<'source>, Vec<Token<'source>>),
-    UnexpectedToken(
-        &'source str,
-        FileContext<'source>,
-        Token<'source>,
-        Vec<Token<'source>>,
-    ),
+    AbruptEof(&'source str, FileContext<'source>, Vec<Token>),
+    UnexpectedToken(&'source str, FileContext<'source>, Token, Vec<Token>),
     TokenError(String),
 }
 

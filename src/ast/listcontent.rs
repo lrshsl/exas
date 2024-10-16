@@ -54,8 +54,8 @@ impl<'source> Parsable<'source> for ListContent<'source> {
                 None => break,
             };
             match token {
-                Token::Symbol(",") => parser.advance(),
-                Token::Symbol("]") | Token::Symbol("}") => {
+                Token::Symbol(',') => parser.advance(),
+                Token::Symbol(']') | Token::Symbol('}') => {
                     parser.advance();
                     break;
                 }
@@ -72,9 +72,9 @@ impl<'source> Parsable<'source> for ListContent<'source> {
                         parser.lexer.extras.clone(),
                         token.clone(),
                         vec![
-                            Token::Symbol(","),
-                            Token::Symbol("]"),
-                            Token::Symbol("}"),
+                            Token::Symbol(','),
+                            Token::Symbol(']'),
+                            Token::Symbol('}'),
                             Token::Ident,
                             Token::Int(0),
                             Token::String,

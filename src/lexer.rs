@@ -10,8 +10,8 @@ pub struct FileContext<'source> {
 #[derive(Logos, Debug, PartialEq, Clone)]
 #[logos(extras = FileContext<'s>)]
 #[logos(skip r"[ \t\r\f]+")] // Ignore whitespace
-pub enum Token<'source> {
-    #[regex(r"[-[:alpha:][:digit:]]*")]
+pub enum Token {
+    #[regex(r"[_[:alpha:]][_[:alpha:][:digit:]]*")]
     Ident,
 
     #[regex(r"[0-9]+", |lex| lex.slice().parse::<u32>().expect("Wrong"))]
@@ -38,8 +38,8 @@ pub enum Token<'source> {
     #[regex(r"\|[^\n|]*", logos::skip, priority = 2)]
     Comment,
 
-    #[regex(r###"[^0-9a-zA-Z\p{whitespace}|]"###)]
-    Symbol(&'source str),
+    #[regex(r".", |lex| lex.slice().chars().next().expect("Wrong: empty symbol"), priority = 1)]
+    Symbol(char),
 }
 
 #[cfg(test)]
@@ -62,21 +62,21 @@ mod tests {
         assert_eq!(lex.slice(), "set");
         assert_eq!(lex.next(), Some(Ok(Token::Ident)));
         assert_eq!(lex.slice(), "x");
-        assert_eq!(lex.next(), Some(Ok(Token::Symbol("="))));
+        assert_eq!(lex.next(), Some(Ok(Token::Symbol('='))));
         assert_eq!(lex.next(), Some(Ok(Token::Int(3))));
-        assert_eq!(lex.next(), Some(Ok(Token::Symbol(","))));
+        assert_eq!(lex.next(), Some(Ok(Token::Symbol(','))));
 
         assert_eq!(lex.next(), Some(Ok(Token::Ident)));
         assert_eq!(lex.next(), Some(Ok(Token::Ident)));
-        assert_eq!(lex.next(), Some(Ok(Token::Symbol("="))));
+        assert_eq!(lex.next(), Some(Ok(Token::Symbol('='))));
         assert_eq!(lex.next(), Some(Ok(Token::Int(4))));
-        assert_eq!(lex.next(), Some(Ok(Token::Symbol(","))));
+        assert_eq!(lex.next(), Some(Ok(Token::Symbol(','))));
 
         assert_eq!(lex.next(), Some(Ok(Token::Ident)));
         assert_eq!(lex.slice(), "print");
         assert_eq!(lex.next(), Some(Ok(Token::Ident)));
         assert_eq!(lex.slice(), "x");
-        assert_eq!(lex.next(), Some(Ok(Token::Symbol(","))));
+        assert_eq!(lex.next(), Some(Ok(Token::Symbol(','))));
         assert_eq!(lex.next(), None);
     }
 
@@ -91,16 +91,16 @@ mod tests {
             line: 1,
         });
         assert_eq!(lex.next(), Some(Ok(Token::Ident)));
-        assert_eq!(lex.next(), Some(Ok(Token::Symbol("-"))));
-        assert_eq!(lex.next(), Some(Ok(Token::Symbol("<"))));
-        assert_eq!(lex.next(), Some(Ok(Token::Symbol(">"))));
-        assert_eq!(lex.next(), Some(Ok(Token::Symbol("*"))));
-        assert_eq!(lex.next(), Some(Ok(Token::Symbol("/"))));
-        assert_eq!(lex.next(), Some(Ok(Token::Symbol(","))));
-        assert_eq!(lex.next(), Some(Ok(Token::Symbol("."))));
-        assert_eq!(lex.next(), Some(Ok(Token::Symbol("?"))));
-        assert_eq!(lex.next(), Some(Ok(Token::Symbol(":"))));
-        assert_eq!(lex.next(), Some(Ok(Token::Symbol(","))));
+        assert_eq!(lex.next(), Some(Ok(Token::Symbol('-'))));
+        assert_eq!(lex.next(), Some(Ok(Token::Symbol('<'))));
+        assert_eq!(lex.next(), Some(Ok(Token::Symbol('>'))));
+        assert_eq!(lex.next(), Some(Ok(Token::Symbol('*'))));
+        assert_eq!(lex.next(), Some(Ok(Token::Symbol('/'))));
+        assert_eq!(lex.next(), Some(Ok(Token::Symbol(','))));
+        assert_eq!(lex.next(), Some(Ok(Token::Symbol('.'))));
+        assert_eq!(lex.next(), Some(Ok(Token::Symbol('?'))));
+        assert_eq!(lex.next(), Some(Ok(Token::Symbol(':'))));
+        assert_eq!(lex.next(), Some(Ok(Token::Symbol(','))));
         assert_eq!(lex.next(), None);
     }
 
@@ -122,39 +122,67 @@ mod tests {
         assert_eq!(lex.slice(), "echo");
         assert_eq!(lex.next(), Some(Ok(Token::String)));
         assert_eq!(lex.slice(), "\"hello\"");
-        assert_eq!(lex.next(), Some(Ok(Token::Symbol(","))));
+        assert_eq!(lex.next(), Some(Ok(Token::Symbol(','))));
 
         assert_eq!(lex.next(), Some(Ok(Token::Ident)));
         assert_eq!(lex.slice(), "is");
-        assert_eq!(lex.next(), Some(Ok(Token::Symbol("."))));
-        assert_eq!(lex.next(), Some(Ok(Token::Symbol("."))));
+        assert_eq!(lex.next(), Some(Ok(Token::Symbol('.'))));
+        assert_eq!(lex.next(), Some(Ok(Token::Symbol('.'))));
         assert_eq!(lex.next(), Some(Ok(Token::Ident)));
         assert_eq!(lex.slice(), "x");
-        assert_eq!(lex.next(), Some(Ok(Token::Symbol(">"))));
+        assert_eq!(lex.next(), Some(Ok(Token::Symbol('>'))));
         assert_eq!(lex.next(), Some(Ok(Token::Ident)));
         assert_eq!(lex.slice(), "y");
         assert_eq!(lex.next(), Some(Ok(Token::Ident)));
         assert_eq!(lex.slice(), "or");
-        assert_eq!(lex.next(), Some(Ok(Token::Symbol("."))));
-        assert_eq!(lex.next(), Some(Ok(Token::Symbol("."))));
-        assert_eq!(lex.next(), Some(Ok(Token::Symbol("<"))));
+        assert_eq!(lex.next(), Some(Ok(Token::Symbol('.'))));
+        assert_eq!(lex.next(), Some(Ok(Token::Symbol('.'))));
+        assert_eq!(lex.next(), Some(Ok(Token::Symbol('<'))));
         assert_eq!(lex.next(), Some(Ok(Token::Ident)));
         assert_eq!(lex.slice(), "y");
-        assert_eq!(lex.next(), Some(Ok(Token::Symbol("?"))));
+        assert_eq!(lex.next(), Some(Ok(Token::Symbol('?'))));
 
-        assert_eq!(lex.next(), Some(Ok(Token::Symbol(":"))));
+        assert_eq!(lex.next(), Some(Ok(Token::Symbol(':'))));
         assert_eq!(lex.next(), Some(Ok(Token::String)));
         assert_eq!(lex.slice(), "\"hello\"");
-        assert_eq!(lex.next(), Some(Ok(Token::Symbol(","))));
+        assert_eq!(lex.next(), Some(Ok(Token::Symbol(','))));
 
         assert_eq!(lex.next(), Some(Ok(Token::Ident)));
         assert_eq!(lex.slice(), "let");
         assert_eq!(lex.next(), Some(Ok(Token::Ident)));
         assert_eq!(lex.slice(), "x");
-        assert_eq!(lex.next(), Some(Ok(Token::Symbol("-"))));
-        assert_eq!(lex.next(), Some(Ok(Token::Symbol(">"))));
+        assert_eq!(lex.next(), Some(Ok(Token::Symbol('-'))));
+        assert_eq!(lex.next(), Some(Ok(Token::Symbol('>'))));
         assert_eq!(lex.next(), Some(Ok(Token::Ident)));
         assert_eq!(lex.slice(), "y");
-        assert_eq!(lex.next(), Some(Ok(Token::Symbol(","))));
+        assert_eq!(lex.next(), Some(Ok(Token::Symbol(','))));
+    }
+
+    #[test]
+    fn identifiers() {
+        let source = r##"
+            these-are-7-symbols
+
+            this_is_all_just_one
+            This_asWell42?
+            "##;
+        let mut lex = Token::lexer_with_extras(source, FileContext {
+            filename: "test4".to_string(),
+            source,
+            line: 1,
+        });
+        assert_eq!(lex.next(), Some(Ok(Token::Ident)));
+        assert_eq!(lex.next(), Some(Ok(Token::Symbol('-'))));
+        assert_eq!(lex.next(), Some(Ok(Token::Ident)));
+        assert_eq!(lex.next(), Some(Ok(Token::Symbol('-'))));
+        assert_eq!(lex.next(), Some(Ok(Token::Int(7))));
+        assert_eq!(lex.next(), Some(Ok(Token::Symbol('-'))));
+        assert_eq!(lex.next(), Some(Ok(Token::Ident)));
+        assert_eq!(lex.next(), Some(Ok(Token::Ident)));
+        assert_eq!(lex.slice(), "this_is_all_just_one");
+        assert_eq!(lex.next(), Some(Ok(Token::Ident)));
+        assert_eq!(lex.slice(), "This_asWell42");
+        assert_eq!(lex.next(), Some(Ok(Token::Symbol('?'))));
+        assert_eq!(lex.next(), None);
     }
 }

@@ -7,11 +7,11 @@ impl<'source> Parsable<'source> for ArgumentList<'source> {
         let mut args = vec![];
         while let Some(Ok(token)) = parser.current_token.as_ref() {
             match token {
-                Token::Symbol(",") => {
+                Token::Symbol(',') => {
                     parser.advance();
                     break;
                 }
-                Token::Symbol("(") => {
+                Token::Symbol('(') => {
                     parser.advance(); // Consume the '('
                     args.push(RawToken::Expr(Expr::parse(parser)?)); // Parse the expression
                     parser.advance(); // Consume the ')'
