@@ -7,9 +7,9 @@ pub struct FileContext<'source> {
     pub line:     usize,
 }
 
-#[derive(Logos, Debug, PartialEq, Clone)]
+#[derive(Logos, Debug, PartialEq, Clone, Copy)]
 #[logos(extras = FileContext<'s>)]
-#[logos(skip r"[ \t\r\f]+")] // Ignore whitespace
+#[logos(skip r"[ \t\r\f]+")]
 pub enum Token {
     #[regex(r"[_[:alpha:]][_[:alpha:][:digit:]]*")]
     Ident,

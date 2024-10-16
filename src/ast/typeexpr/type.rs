@@ -22,10 +22,10 @@ impl Parsable<'_> for Type {
                 parser.lexer.extras.clone(),
                 vec![Token::Int(0)],
             )),
-            Some(Ok(ref token)) => Err(ParsingError::UnexpectedToken(
+            Some(Ok(token)) => Err(ParsingError::UnexpectedToken(
                 "type",
                 parser.lexer.extras.clone(),
-                token.clone(),
+                token,
                 vec![Token::Int(0)],
             )),
             Some(Err(())) => Err(ParsingError::TokenError(format!(

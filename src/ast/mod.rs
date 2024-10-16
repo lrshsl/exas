@@ -11,7 +11,7 @@ mod ast;
 
 mod ast_util;
 pub(self) use ast_util::{
-    register::{free_register, Register},
+    register::free_register,
     scope::{
         change_indentation, current_padding, next_scope, reset_scope_and_indent, IndentationChange,
         ScopeId, Symbol,
@@ -38,10 +38,10 @@ mod fn_call;
 pub(self) use fn_call::{argument_list::ArgumentList, fn_call::FnCall};
 
 mod fn_def;
-pub(self) use fn_def::{FnDef, FnSignature, Param, ParamExpr, ParamList};
+pub(self) use fn_def::{FnDef, Param, ParamExpr};
 
 mod listcontent;
 pub(self) use listcontent::ListContent;
 
 mod typeexpr;
-pub(self) use typeexpr::{find_type, Type, TypeFn};
+pub(self) use typeexpr::find_type;

@@ -117,7 +117,7 @@ impl<'source> AstNode<'source> for Expr<'source> {
 impl<'source> Parsable<'source> for Expr<'source> {
     /// Should be called when on the first token
     fn parse(parser: &mut Parser<'source>) -> Result<Expr<'source>, ParsingError<'source>> {
-        let token = match parser.current_token.as_ref() {
+        let token = match parser.current_token {
             Some(Ok(token)) => token,
             Some(Err(())) => {
                 return Err(ParsingError::TokenError(format!(
@@ -165,7 +165,6 @@ impl<'source> Parsable<'source> for Expr<'source> {
                 }
             }
             Token::Int(val) => {
-                let val = *val;
                 parser.advance();
                 Ok(Expr::SmallValue(SmallValue::Untyped(val.into())))
             }
@@ -185,7 +184,7 @@ impl<'source> Parsable<'source> for Expr<'source> {
             _ => Err(ParsingError::UnexpectedToken(
                 "expr",
                 parser.lexer.extras.clone(),
-                token.clone(),
+                token,
                 vec![Token::Ident, Token::Int(0), Token::String, Token::KeywordFn],
             )),
         }

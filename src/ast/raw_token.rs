@@ -29,14 +29,12 @@ impl std::fmt::Debug for RawToken<'_> {
 }
 
 impl<'source> RawToken<'source> {
-    pub fn from_token(token: &Token, slice: &'source str) -> Self {
+    pub fn from_token(token: Token, slice: &'source str) -> Self {
         match token {
             Token::Ident => RawToken::Ident(Ident(slice)),
-            Token::Int(val) => RawToken::Expr(Expr::SmallValue(SmallValue::Untyped(*val as u64))),
-            _ => {
-                assert_eq!(slice.len(), 1);
-                RawToken::Symbol(slice.chars().next().unwrap())
-            }
+            Token::Int(val) => RawToken::Expr(Expr::SmallValue(SmallValue::Untyped(val as u64))),
+            Token::Symbol(symbol) => RawToken::Symbol(symbol),
+            token => unimplemented!("Is this token allowed? : {token:?}"),
         }
     }
 }
@@ -45,10 +43,10 @@ impl<'source> Parsable<'source> for RawToken<'source> {
     fn parse(parser: &mut Parser<'source>) -> Result<RawToken<'source>, ParsingError<'source>> {
         match parser.current_token {
             Some(Ok(Token::String)) => {
-                Ok(RawToken::from_token(&Token::String, parser.current_slice))
+                Ok(RawToken::from_token(Token::String, parser.current_slice))
             }
             Some(Ok(Token::Int(val))) => {
-                Ok(RawToken::from_token(&Token::Int(val), parser.current_slice))
+                Ok(RawToken::from_token(Token::Int(val), parser.current_slice))
             }
             Some(Ok(Token::Ident)) => Ok(RawToken::Ident(Ident(parser.current_slice))),
             Some(Ok(Token::KeywordFn)) => Ok(RawToken::Ident(Ident("fn"))),

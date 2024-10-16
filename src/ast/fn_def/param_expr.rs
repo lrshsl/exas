@@ -1,4 +1,5 @@
 use super::*;
+use crate::assert_token_matches;
 
 #[derive(Debug, Clone)]
 pub struct ParamExpr<'source> {
@@ -46,7 +47,7 @@ impl ParamExpr<'_> {
 
 impl<'source> Parsable<'source> for ParamExpr<'source> {
     fn parse(parser: &mut Parser<'source>) -> Result<Self, ParsingError<'source>> {
-        let name = match parser.current_token.as_ref() {
+        let name = match parser.current_token {
             Some(Ok(token)) => match token {
                 Token::Symbol(':') | Token::Symbol(']') => None,
                 Token::Ident => {
@@ -59,11 +60,11 @@ impl<'source> Parsable<'source> for ParamExpr<'source> {
             _ => todo!("Handle error"),
         };
 
-        let typename = match parser.current_token.as_ref() {
+        let typename = match parser.current_token {
             Some(Ok(Token::Symbol(']'))) => None,
             Some(Ok(Token::Symbol(':'))) => {
                 parser.advance(); // Skip ':'
-                match parser.current_token.as_ref() {
+                match parser.current_token {
                     Some(Ok(Token::Ident)) => {
                         let typename = Some(parser.current_slice);
                         parser.advance();
@@ -75,6 +76,11 @@ impl<'source> Parsable<'source> for ParamExpr<'source> {
             _ => todo!(),
         };
 
+        assert_token_matches!(
+            parser.current_token,
+            Token::Symbol(']'),
+            parser.lexer.extras
+        );
         parser.advance(); // Skip ']'
         Ok(ParamExpr { name, typename })
     }

@@ -42,7 +42,7 @@ impl<'source> Parsable<'source> for ListContent<'source> {
     fn parse(parser: &mut Parser<'source>) -> Result<ListContent<'source>, ParsingError<'source>> {
         let mut elements = vec![];
         loop {
-            let token = match parser.current_token.as_ref() {
+            let token = match parser.current_token {
                 Some(Ok(token)) => token,
                 Some(Err(())) => {
                     return Err(ParsingError::TokenError(format!(
@@ -70,7 +70,7 @@ impl<'source> Parsable<'source> for ListContent<'source> {
                     return Err(ParsingError::UnexpectedToken(
                         "listcontent",
                         parser.lexer.extras.clone(),
-                        token.clone(),
+                        token,
                         vec![
                             Token::Symbol(','),
                             Token::Symbol(']'),
