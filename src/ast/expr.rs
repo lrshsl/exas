@@ -3,7 +3,7 @@ use std::fmt;
 use super::*;
 
 #[derive(Clone, Debug, PartialEq)]
-pub enum SmallValue {
+pub(crate) enum SmallValue {
     Byte(u8),
     Word(u16),
     DWord(u32),
@@ -35,7 +35,7 @@ impl CompTimeSize<'_> for SmallValue {
 }
 
 #[derive(Clone, PartialEq)]
-pub enum Expr<'source> {
+pub(crate) enum Expr<'source> {
     FnDef(FnDef<'source>),
     FnCall(FnCall<'source>),
     Type(typeexpr::Type),

@@ -1,7 +1,7 @@
 use super::*;
 use crate::assert_token_matches;
 
-pub type ArgumentList<'source> = Vec<RawToken<'source>>;
+pub(crate) type ArgumentList<'source> = Vec<RawToken<'source>>;
 
 impl<'source> Parsable<'source> for ArgumentList<'source> {
     fn parse(parser: &mut Parser<'source>) -> Result<ArgumentList<'source>, ParsingError<'source>> {

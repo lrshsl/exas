@@ -1,7 +1,7 @@
 use std::{fmt, ops};
 
 #[derive(Debug, Clone, PartialEq)]
-pub enum ByteSize {
+pub(crate) enum ByteSize {
     Exact(usize),
     Range(ops::Range<usize>),
     AnySize,

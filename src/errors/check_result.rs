@@ -2,9 +2,9 @@ use std::io;
 
 use super::SyntaxErrorContext;
 
-pub type CheckResult<T> = Result<T, CheckError>;
+pub(crate) type CheckResult<T> = Result<T, CheckError>;
 
-pub enum CheckError {
+pub(crate) enum CheckError {
     CompileError(SyntaxErrorContext, String),
     EmitError(io::Error),
 }

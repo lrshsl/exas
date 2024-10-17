@@ -1,6 +1,6 @@
 use super::*;
 
-pub type ParamList<'source> = Vec<Param<'source>>;
+pub(crate) type ParamList<'source> = Vec<Param<'source>>;
 
 impl<'source> Parsable<'source> for ParamList<'source> {
     fn parse(parser: &mut Parser<'source>) -> Result<ParamList<'source>, ParsingError<'source>> {

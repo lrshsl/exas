@@ -1,7 +1,7 @@
 use super::*;
 
 #[derive(Debug)]
-pub struct Ast<'source> {
+pub(crate) struct Ast<'source> {
     pub program: ListContent<'source>,
 }
 

@@ -31,6 +31,7 @@ macro_rules! assert_token_matches {
     };
 }
 
+#[derive(Debug)]
 pub enum ParsingError<'source> {
     AbruptEof(&'source str, FileContext<'source>, Vec<Token>),
     UnexpectedToken(&'source str, FileContext<'source>, Token, Vec<Token>),

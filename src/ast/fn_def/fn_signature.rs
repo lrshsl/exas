@@ -1,7 +1,7 @@
 use super::*;
 
 #[derive(Debug, Clone, PartialEq)]
-pub struct FnSignature<'source> {
+pub(crate) struct FnSignature<'source> {
     pub params: ParamList<'source>,
 }
 

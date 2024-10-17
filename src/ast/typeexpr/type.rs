@@ -1,7 +1,7 @@
 use super::*;
 
 #[derive(Debug, Clone, PartialEq)]
-pub struct Type {
+pub(crate) struct Type {
     pub size:    ByteSize,
     pub type_fn: Option<TypeFn>,
 }

@@ -5,6 +5,7 @@ use crate::lexer::FileContext;
 
 pub type CompileResult<'source, T> = Result<T, CompileError<'source>>;
 
+#[derive(Debug)]
 pub enum CompileError<'source> {
     ParsingError(ParsingError<'source>),
     IoError(io::Error),
@@ -31,7 +32,7 @@ impl From<io::Error> for CompileError<'_> {
     }
 }
 
-pub fn compile_error<T>(context: FileContext, msg: String) -> CheckResult<T> {
+pub(crate) fn compile_error<T>(context: FileContext, msg: String) -> CheckResult<T> {
     Err(CheckError::CompileError(
         SyntaxErrorContext {
             line: context.line,
@@ -47,7 +48,7 @@ pub fn compile_error<T>(context: FileContext, msg: String) -> CheckResult<T> {
     ))
 }
 
-pub struct SyntaxErrorContext {
+pub(crate) struct SyntaxErrorContext {
     pub filename: String,
     pub line: usize,
     pub line_content: String,

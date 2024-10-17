@@ -2,16 +2,16 @@ use logos::Logos;
 
 use crate::{ast::Ast, errors::ParsingError, lexer::Token};
 
-pub type LogosError<'source> = <Token as Logos<'source>>::Error;
-pub type LogosLexer<'source> = logos::Lexer<'source, Token>;
+pub(crate) type LogosError<'source> = <Token as Logos<'source>>::Error;
+pub(crate) type LogosLexer<'source> = logos::Lexer<'source, Token>;
 
-pub trait Parsable<'source> {
+pub(crate) trait Parsable<'source> {
     fn parse(parser: &mut Parser<'source>) -> Result<Self, ParsingError<'source>>
     where
         Self: Sized;
 }
 
-pub struct Parser<'source> {
+pub(crate) struct Parser<'source> {
     pub lexer: LogosLexer<'source>,
     pub current_token: Option<Result<Token, LogosError<'source>>>,
     pub current_slice: &'source str,

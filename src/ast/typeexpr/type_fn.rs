@@ -1,3 +1,3 @@
 use super::*;
 
-pub type TypeFn = fn(&Expr) -> bool;
+pub(crate) type TypeFn = fn(&Expr) -> bool;

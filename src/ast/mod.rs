@@ -1,5 +1,5 @@
-pub use ast::Ast;
-pub use ast_util::scope::ProgramContext;
+pub(crate) use ast::Ast;
+pub(crate) use ast_util::scope::ProgramContext;
 
 pub(self) use crate::{
     errors::{compile_error, CheckError, CheckResult, ParsingError},

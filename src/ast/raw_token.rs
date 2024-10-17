@@ -1,7 +1,7 @@
 use super::*;
 
 #[derive(Clone, PartialEq)]
-pub enum RawToken<'source> {
+pub(crate) enum RawToken<'source> {
     Ident(Ident<'source>),
     Symbol(char),
 

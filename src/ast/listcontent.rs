@@ -1,7 +1,7 @@
 use super::*;
 
 #[derive(Clone, PartialEq)]
-pub struct ListContent<'source> {
+pub(crate) struct ListContent<'source> {
     pub elements: Vec<Expr<'source>>,
 }
 

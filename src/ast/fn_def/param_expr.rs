@@ -2,7 +2,7 @@ use super::*;
 use crate::assert_token_matches;
 
 #[derive(Debug, Clone)]
-pub struct ParamExpr<'source> {
+pub(crate) struct ParamExpr<'source> {
     pub name:     Option<&'source str>,
     pub typename: Option<&'source str>,
 }

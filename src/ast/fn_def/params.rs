@@ -1,7 +1,7 @@
 use super::*;
 
 #[derive(Clone, PartialEq)]
-pub enum Param<'source> {
+pub(crate) enum Param<'source> {
     LiteralMatcher(RawToken<'source>),
     ParamExpr(ParamExpr<'source>),
 }

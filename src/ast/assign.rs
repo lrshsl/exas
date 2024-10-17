@@ -3,14 +3,14 @@ use std::{io, ops::Deref, rc::Rc};
 use super::*;
 
 #[derive(Debug, Clone)]
-pub struct Assign<'source> {
+pub(crate) struct Assign<'source> {
     pub name:  &'source str,
     pub value: Rc<Expr<'source>>,
 }
 
 impl PartialEq for Assign<'_> {
-    fn eq(&self, _: &Self) -> bool {
-        false
+    fn eq(&self, other: &Self) -> bool {
+        self.value == other.value
     }
 }
 
@@ -67,7 +67,7 @@ impl<'source> AstNode<'source> for Assign<'source> {
 }
 
 /// Should be called when on the next token after '='
-pub fn parse_assign<'source>(
+pub(crate) fn parse_assign<'source>(
     parser: &mut Parser<'source>,
     name: &'source str,
 ) -> Result<Expr<'source>, ParsingError<'source>> {

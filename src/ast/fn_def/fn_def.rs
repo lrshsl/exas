@@ -1,7 +1,7 @@
 use super::*;
 
 #[derive(Debug, Clone, PartialEq)]
-pub struct FnDef<'source> {
+pub(crate) struct FnDef<'source> {
     pub signature: FnSignature<'source>,
     pub body:      ListContent<'source>,
 }
