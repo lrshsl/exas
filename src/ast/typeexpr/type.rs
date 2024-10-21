@@ -1,4 +1,5 @@
 use super::*;
+use crate::assert_token_matches;
 
 #[derive(Debug, Clone, PartialEq)]
 pub(crate) struct Type {
@@ -7,32 +8,23 @@ pub(crate) struct Type {
 }
 
 impl Parsable<'_> for Type {
-    fn parse<'source>(parser: &mut Parser<'source>) -> Result<Type, ParsingError<'source>> {
-        match parser.current_token {
-            // TODO: Add support for type ranges and type check fns
-            Some(Ok(Token::Int(int))) => {
-                parser.advance();
-                Ok(Type {
-                    size:    ByteSize::Exact(int as usize),
-                    type_fn: None,
-                })
+    fn parse<'source>(parser: &mut Parser<'source>) -> Result<Self, ParsingError<'source>> {
+        let size = if let Some(Ok(Token::Int(first))) = parser.current_token {
+            parser.advance();
+            if let Some(Ok(Token::Int(second))) = parser.current_token {
+                ByteSize::Range((first as usize)..(second as usize))
+            } else {
+                ByteSize::Exact(first.try_into().unwrap())
             }
-            None => Err(ParsingError::AbruptEof(
-                "type",
-                parser.lexer.extras.clone(),
-                vec![Token::Int(0)],
-            )),
-            Some(Ok(token)) => Err(ParsingError::UnexpectedToken(
-                "type",
-                parser.lexer.extras.clone(),
-                token,
-                vec![Token::Int(0)],
-            )),
-            Some(Err(())) => Err(ParsingError::TokenError(format!(
-                "Parsing error in {file}@{line}",
-                file = parser.lexer.extras.filename,
-                line = parser.lexer.extras.line
-            ))),
-        }
+        } else {
+            assert_token_matches!(
+                parser.current_token,
+                Token::Int(_) | Token::Ident,
+                parser.lexer.extras
+            );
+            ByteSize::AnySize
+        };
+        let type_fn = None;
+        Ok(Self { size, type_fn })
     }
 }
