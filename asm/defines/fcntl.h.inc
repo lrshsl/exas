@@ -25,3 +25,5 @@
 %define __S_IFSOCK 140000o
 %define __S_ISUID 4000o
 %define __S_ISGID 2000o
+
+%define S_IRWXU 00700o
