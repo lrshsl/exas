@@ -1,22 +1,19 @@
 
 %include "defines/fcntl.h.inc"
-%include "src/utils.asm"
+%include "src/utils.inc"
 
 section .data
 	msg		db		"42",0x0a,0
 	msglen	equ	$ - msg
-	filename db		"file.out",0
+	filename db		"out/fileaccess",0
 
 section .text
 	global _start
 
 _start:
 	; Open the file
-	mov	rax,	2			; sys_open
-	mov	rdi,	filename
-	mov	rsi,	O_CREAT | O_WRONLY
-	mov	rdx,	666o
-	syscall
+   %define fopenflags O_CREAT | O_WRONLY
+   fopen filename, fopenflags, 666o
 	mov	r12,	rax
 
 	; Check if open was successful
@@ -26,9 +23,8 @@ _start:
 	write	r12, msg, msglen
 
 	; Close the file
-	mov	rax,	3
 	mov	rdi,	r12
-	syscall
+	mksyscall 3
 
 	; Exit program
 _exit:

@@ -1,12 +1,11 @@
 
-;%include "sys/types.h"
-;%include "sys/stat.h"
+;%
 %include "defines/fcntl.h.inc"
 
 section .data
 	msg		db		"nice",0x0a,0
 	msglen	equ	$ - msg
-	filename db		"file.out",0
+	filename db		"out/fileaccess",0
 
 section .text
 	global _start

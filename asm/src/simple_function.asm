@@ -1,3 +1,5 @@
+;%
+
 ; Simple function call
 
 section .text

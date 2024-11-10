@@ -14,10 +14,6 @@ $(build_dir)/%: $(src_dir)/%.asm
 	@rm $(build_dir)/*.o
 	@echo
 
-run: $(build_dir)/fileaccess_macros
-	./$<
-	cat file.txt
-
 clean:
 	@rm -rf $(build_dir)
 
