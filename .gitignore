@@ -26,6 +26,7 @@
 !/asm/**
 !/asm/**/*
 /asm/build/
+/asm/out/
 
 
 
